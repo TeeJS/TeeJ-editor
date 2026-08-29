@@ -43,14 +43,19 @@ jobs:
           $vi = (Get-Item $exe).VersionInfo
           "ProductName=$($vi.ProductName)  OriginalFilename=$($vi.OriginalFilename)  Version=$($vi.ProductVersion)"
           if ($vi.ProductName -ne 'TeeJ-editor') { throw "ProductName is '$($vi.ProductName)', expected TeeJ-editor" }
+          # Locate dumpbin (not on PATH on the runner; setup-msbuild only adds MSBuild).
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $vsroot = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $dumpbin = Get-ChildItem "$vsroot\VC\Tools\MSVC" -Recurse -Filter dumpbin.exe | Where-Object { $_.Directory.Name -eq 'x64' -and $_.Directory.Parent.Name -eq 'Hostx64' } | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $dumpbin) { throw "dumpbin.exe not found under $vsroot" }
           # The exe must not import any network DLL.
-          $imports = & dumpbin /dependents $exe | Select-String -Pattern '^\s+\S+\.dll' | ForEach-Object { $_.Matches.Value.Trim().ToLower() }
+          $imports = & $dumpbin /dependents $exe | Select-String -Pattern '^\s+\S+\.dll' | ForEach-Object { $_.Matches.Value.Trim().ToLower() }
           "Imports: $($imports -join ', ')"
           $bad = $imports | Where-Object { $_ -match '^(winhttp|ws2_32|wsock32|urlmon|libcurl)' }
           if ($bad) { throw "Network DLL imported: $($bad -join ', ')" }
           # wininet.dll is allowed only for InternetCrackUrl (URL parsing); make sure that is all.
           if ($imports -contains 'wininet.dll') {
-            $fn = & dumpbin /imports $exe | Select-String -Pattern 'Internet\w+|Http\w+' | ForEach-Object { $_.Matches.Value } | Sort-Object -Unique
+            $fn = & $dumpbin /imports $exe | Select-String -Pattern 'Internet\w+|Http\w+' | ForEach-Object { $_.Matches.Value } | Sort-Object -Unique
             "wininet imports: $($fn -join ', ')"
             $extra = $fn | Where-Object { $_ -ne 'InternetCrackUrlW' -and $_ -ne 'InternetCrackUrlA' }
             if ($extra) { throw "Unexpected wininet import(s): $($extra -join ', ')" }
