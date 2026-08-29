@@ -51,7 +51,6 @@
 #include "resource.h"
 
 #ifdef NDEBUG
-#include "verifySignedfile.h"
 #endif
 
 #define TEXTFILE        256
@@ -262,22 +261,7 @@ vector<PluginUpdateInfo*> PluginViewList::fromUiIndexesToPluginInfos(const std::
 
 PluginsAdminDlg::PluginsAdminDlg()
 {
-	// Get wingup path
-	NppParameters& nppParameters = NppParameters::getInstance();
-	_updaterDir = nppParameters.getNppPath();
-	pathAppend(_updaterDir, L"updater");
-	_updaterFullPath = _updaterDir;
-	pathAppend(_updaterFullPath, L"gup.exe");
-
-	// get plugin-list path
-	_pluginListFullPath = nppParameters.getPluginConfDir();
-
-#if !defined(NDEBUG)  // if not debug, then it's release
-	// load from nppPluginList.json instead of nppPluginList.dll
-	pathAppend(_pluginListFullPath, L"nppPluginList.json");
-#else //RELEASE
-	pathAppend(_pluginListFullPath, L"nppPluginList.dll");
-#endif
+	// TeeJ-editor: no updater (gup.exe) and no online plugin catalog.
 }
 
 wstring PluginsAdminDlg::getPluginListVerStr() const
@@ -287,252 +271,29 @@ wstring PluginsAdminDlg::getPluginListVerStr() const
 	return v.toString();
 }
 
-bool PluginsAdminDlg::exitToInstallRemovePlugins(Operation op, const vector<PluginUpdateInfo*>& puis, const wstring& customRoot)
-{
-	wstring opStr;
-	if (op == pa_install)
-		opStr = L"-unzipTo ";
-	else if (op == pa_update)
-		opStr = L"-unzipTo -clean ";
-	else if (op == pa_remove)
-		opStr = L"-clean ";
-	else
-		return false;
-
-	NppParameters& nppParameters = NppParameters::getInstance();
-	wstring updaterDir = nppParameters.getNppPath();
-	updaterDir += L"\\updater\\";
-
-	wstring updaterFullPath = updaterDir + L"gup.exe";
-
-	wstring updaterParams = opStr;
-
-	wchar_t nppFullPath[MAX_PATH]{};
-	::GetModuleFileName(NULL, nppFullPath, MAX_PATH);
-	updaterParams += L"\"";
-	updaterParams += nppFullPath;
-	updaterParams += L"\" ";
-
-	// customRoot lets pa_remove operate on a folder other than the regular
-	// "plugins" directory - used to delete folders from "plugins\disabled".
-	updaterParams += L"\"";
-	updaterParams += customRoot.empty() ? nppParameters.getPluginRootDir() : customRoot;
-	updaterParams += L"\"";
-
-	for (const auto &i : puis)
-	{
-		if (op == pa_install || op == pa_update)
-		{
-			// add folder to operate
-			updaterParams += L" \"";
-			updaterParams += i->_folderName;
-			updaterParams += L" ";
-			updaterParams += i->_repository;
-			updaterParams += L" ";
-			updaterParams += i->_id;
-			updaterParams += L"\"";
-		}
-		else // op == pa_remove
-		{
-			// add folder to operate
-			updaterParams += L" \"";
-			wstring folderName = i->_folderName;
-			if (folderName.empty())
-			{
-				auto lastindex = i->_displayName.find_last_of(L".");
-				if (lastindex != wstring::npos)
-					folderName = i->_displayName.substr(0, lastindex);
-				else
-					folderName = i->_displayName;	// This case will never occur, but in case if it occurs too
-													// just putting the plugin name, so that whole plugin system is not screewed.
-			}
-			updaterParams += folderName;
-			updaterParams += L"\"";
-		}
-	}
-
-	// Ask user's confirmation
-	NativeLangSpeaker *pNativeSpeaker = nppParameters.getNativeLangSpeaker();
-	auto res = pNativeSpeaker->messageBox("ExitToUpdatePlugins",
-		_hSelf,
-		L"If you click YES, you will quit TeeJ-editor to continue the operations.\nTeeJ-editor will be restarted after all the operations are terminated.\nContinue?",
-		L"TeeJ-editor is about to exit",
-		MB_YESNO | MB_APPLMODAL);
-
-	if (res == IDYES)
-	{
-		NppParameters& nppParam = NppParameters::getInstance();
-
-		// gup path: makes trigger ready
-		nppParam.setWingupFullPath(updaterFullPath);
-
-		// op: -clean or "-clean -unzip"
-		// application path: TeeJ-editor path to be relaunched
-		// plugin global path
-		// plugin names or "plugin names + download url"
-		nppParam.setWingupParams(updaterParams);
-
-		// gup folder path
-		nppParam.setWingupDir(updaterDir);
-
-		// Quite TeeJ-editor so just before quitting TeeJ-editor launches gup with needed arguments
-		::PostMessage(_hParent, WM_COMMAND, IDM_FILE_EXIT, 0);
-	}
-
-	return true;
-}
-
-// Moves plugin folders between "plugins" and "plugins\disabled" (direction
-// depends on "op"), via gup's "-moveFolder" flag, then restarts
-// TeeJ-editor the same way exitToInstallRemovePlugins() does. The checked items
-// are already user-confirmed (checkbox selection), so no extra overwrite
-// prompt is needed here - gup always overwrites on conflict.
-bool PluginsAdminDlg::exitToDeactivateActivatePlugins(Operation op, const vector<PluginUpdateInfo*>& puis)
-{
-	if (op != pa_deactivate && op != pa_activate)
-		return false;
-
-	if (puis.empty())
-		return false;
-
-	NppParameters& nppParameters = NppParameters::getInstance();
-	wstring pluginsRootDir = nppParameters.getPluginRootDir();
-	wstring disabledRootDir = pluginsRootDir;
-	pathAppend(disabledRootDir, L"disabled");
-
-	wstring srcRoot = (op == pa_deactivate) ? pluginsRootDir : disabledRootDir;
-	wstring destRoot = (op == pa_deactivate) ? disabledRootDir : pluginsRootDir;
-
-	wstring updaterParams = L"-moveFolder ";
-
-	wchar_t nppFullPath[MAX_PATH]{};
-	::GetModuleFileName(NULL, nppFullPath, MAX_PATH);
-	updaterParams += L"\"";
-	updaterParams += nppFullPath;
-	updaterParams += L"\" ";
-
-	updaterParams += L"\"";
-	updaterParams += srcRoot;
-	updaterParams += L"\" ";
-
-	updaterParams += L"\"";
-	updaterParams += destRoot;
-	updaterParams += L"\"";
-
-	for (const auto& pui : puis)
-	{
-		wstring folderName = pui->_folderName;
-		if (folderName.empty())
-		{
-			auto lastindex = pui->_displayName.find_last_of(L".");
-			folderName = (lastindex != wstring::npos) ? pui->_displayName.substr(0, lastindex) : pui->_displayName;
-		}
-
-		updaterParams += L" \"";
-		updaterParams += folderName;
-		updaterParams += L"\"";
-	}
-
-	// Ask user's confirmation - same restart warning as install/update/remove
-	NativeLangSpeaker* pNativeSpeaker = nppParameters.getNativeLangSpeaker();
-	auto res = pNativeSpeaker->messageBox("ExitToUpdatePlugins",
-		_hSelf,
-		L"If you click YES, you will quit TeeJ-editor to continue the operations.\nTeeJ-editor will be restarted after all the operations are terminated.\nContinue?",
-		L"TeeJ-editor is about to exit",
-		MB_YESNO | MB_APPLMODAL);
-
-	if (res == IDYES)
-	{
-		// destination folder must exist before gup tries to move things into it
-		if (!doesDirectoryExist(destRoot.c_str()))
-			::CreateDirectory(destRoot.c_str(), NULL);
-
-		nppParameters.setWingupFullPath(_updaterFullPath);
-		nppParameters.setWingupParams(updaterParams);
-		nppParameters.setWingupDir(_updaterDir);
-
-		::PostMessage(_hParent, WM_COMMAND, IDM_FILE_EXIT, 0);
-	}
-
-	return true;
-}
+// TeeJ-editor: exitToInstallRemovePlugins() / exitToDeactivateActivatePlugins() removed.
+// They built gup.exe command lines; this fork never launches gup.exe.
 
 bool PluginsAdminDlg::installPlugins()
 {
-	// Need to exit TeeJ-editor
-
-	vector<size_t> indexes = _availableList.getCheckedIndexes();
-	vector<PluginUpdateInfo*> puis = _availableList.fromUiIndexesToPluginInfos(indexes);
-
-	return exitToInstallRemovePlugins(pa_install, puis);
+	return false; // TeeJ-editor: online plugin operations removed (use Plugins > Install Plugin from Zip...)
 }
 
 bool PluginsAdminDlg::updatePlugins()
 {
-	// Need to exit TeeJ-editor
-
-	vector<size_t> indexes = _updateList.getCheckedIndexes();
-	vector<PluginUpdateInfo*> puis = _updateList.fromUiIndexesToPluginInfos(indexes);
-
-	return exitToInstallRemovePlugins(pa_update, puis);
+	return false; // TeeJ-editor: online plugin operations removed (use Plugins > Install Plugin from Zip...)
 }
 
 bool PluginsAdminDlg::removePlugins(int iTab)
 {
-	// Need to exit TeeJ-editor
-
-	wstring disabledRootDir;
-	PluginViewList* pList = nullptr;
-	switch (iTab)
-	{
-		case 2: // Installed
-		{
-			pList = &_installedList;
-		}
-		break;
-
-		case 3: // Incompatible{
-		{
-			pList = &_incompatibleList;
-		}
-		break;
-
-		case 4: // Deactivated
-		{
-			pList = &_disabledList;
-
-			NppParameters& nppParameters = NppParameters::getInstance();
-			disabledRootDir = nppParameters.getPluginRootDir();
-			pathAppend(disabledRootDir, L"disabled");
-		}
-		break;
-
-		default:
-			return false;
-	}
-
-	vector<size_t> indexes = pList->getCheckedIndexes();
-	vector<PluginUpdateInfo*> puis = pList->fromUiIndexesToPluginInfos(indexes);
-
-	return exitToInstallRemovePlugins(pa_remove, puis, disabledRootDir);
+	(void)iTab;
+	return false; // TeeJ-editor: online plugin operations removed (use Plugins > Install Plugin from Zip...)
 }
 
 bool PluginsAdminDlg::enableOrDisablePlugins(Operation op)
 {
-	// Need to exit TeeJ-editor
-
-	PluginViewList* pList = nullptr;
-	if (op == pa_deactivate)
-		pList = &_installedList;
-	else if (op == pa_activate)
-		pList = &_disabledList;
-	else
-		return false;
-
-	vector<size_t> indexes = pList->getCheckedIndexes();
-	vector<PluginUpdateInfo*> puis = pList->fromUiIndexesToPluginInfos(indexes);
-
-	return exitToDeactivateActivatePlugins(op, puis);
+	(void)op;
+	return false; // TeeJ-editor: online plugin operations removed (use Plugins > Install Plugin from Zip...)
 }
 
 void PluginsAdminDlg::changeTabName(LIST_TYPE index, wchar_t* name2change)
@@ -606,168 +367,15 @@ void PluginViewList::pushBack(PluginUpdateInfo* pi)
 // "[8.3,]"       : any version from 8.3 to the latest one
 // "[,8.2.1]"     : 8.2.1 and any previous version
 //
-static std::pair<Version, Version> getIntervalVersions(std::wstring intervalVerStr)
-{
-	std::pair<Version, Version> result;
-
-	if (intervalVerStr.empty())
-		return result;
-
-	const size_t indexEnd = intervalVerStr.length() - 1;
-	if (intervalVerStr[0] == L'[' && intervalVerStr[indexEnd] == L']') // interval versions format
-	{
-		wstring cleanIntervalVerStr = intervalVerStr.substr(1, indexEnd - 1);
-		vector<wstring> versionVect;
-		cutStringBy(cleanIntervalVerStr.c_str(), versionVect, L',', true);
-		if (versionVect.size() == 2)
-		{
-			if (!versionVect[0].empty() && !versionVect[1].empty()) // "[4.2,6.6.6]" : from version 4.2 to 6.6.6 inclusive
-			{
-				result.first = Version(versionVect[0]);
-				result.second = Version(versionVect[1]);
-			}
-			else if (!versionVect[0].empty() && versionVect[1].empty()) // "[8.3,]" : any version from 8.3 to the latest one
-			{
-				result.first = Version(versionVect[0]);
-			}
-			else if (versionVect[0].empty() && !versionVect[1].empty()) // "[,8.2.1]" : 8.2.1 and any previous version
-			{
-				result.second = Version(versionVect[1]);
-			}
-		}
-	}
-	else if (intervalVerStr[0] != L'[' && intervalVerStr[indexEnd] != L']') // one version format -> "6.9" : exact version 6.9
-	{
-		result.first = Version(intervalVerStr);
-		result.second = Version(intervalVerStr);
-	}
-	else // invalid format
-	{
-		// do nothing
-	}
-
-	return result;
-}
+// TeeJ-editor: getIntervalVersions() removed (only used by the deleted online catalog parser).
 
 // twoIntervalVerStr format:
 // "[4.2,6.6.6][6.4,8.9]"  : The 1st interval from version 4.2 to 6.6.6 inclusive, the 2nd interval from version 6.4 to 8.9
 // "[8.3,][6.9,6.9]"       : The 1st interval any version from 8.3 to the latest version, the 2nd interval present only version 6.9
 // "[,8.2.1][4.4,]"        : The 1st interval 8.2.1 and any previous version, , the 2nd interval any version from 4.4 to the latest version
-static std::pair<std::pair<Version, Version>, std::pair<Version, Version>> getTwoIntervalVersions(const std::wstring& twoIntervalVerStr)
-{
-	std::pair<std::pair<Version, Version>, std::pair<Version, Version>> r;
-	wstring sep = L"][";
-	wstring::size_type pos = twoIntervalVerStr.find(sep, 0);
-	if (pos == string::npos)
-		return r;
+// TeeJ-editor: getTwoIntervalVersions() removed (only used by the deleted online catalog parser).
 
-	wstring intervalStr1 = twoIntervalVerStr.substr(0, pos + 1);
-	wstring intervalStr2 = twoIntervalVerStr.substr(pos + 1, twoIntervalVerStr.length() - pos + 1);
-
-	r.first = getIntervalVersions(intervalStr1);
-	r.second = getIntervalVersions(intervalStr2);
-
-	return r;
-}
-
-static bool loadFromJson(std::vector<PluginUpdateInfo*>& pl, std::wstring& verStr, const json& j)
-{
-	if (j.empty())
-		return false;
-
-	WcharMbcsConvertor& wmc = WcharMbcsConvertor::getInstance();
-
-	json jVerStr = j["version"];
-	if (jVerStr.empty() || jVerStr.type() != json::value_t::string)
-		return false;
-
-	string s = jVerStr.get<std::string>();
-	verStr = wmc.char2wchar(s.c_str(), CP_ACP);
-
-	json jArray = j["npp-plugins"];
-	if (jArray.empty() || jArray.type() != json::value_t::array)
-		return false;
-	
-	for (const auto& i : jArray)
-	{
-		try {
-			PluginUpdateInfo* pi = new PluginUpdateInfo();
-
-			string valStr = i.at("folder-name").get<std::string>();
-			pi->_folderName = wmc.char2wchar(valStr.c_str(), CP_ACP);
-
-			valStr = i.at("display-name").get<std::string>();
-			pi->_displayName = wmc.char2wchar(valStr.c_str(), CP_ACP);
-
-			valStr = i.at("author").get<std::string>();
-			pi->_author = wmc.char2wchar(valStr.c_str(), CP_UTF8);
-
-			valStr = i.at("description").get<std::string>();
-			pi->_description = wmc.char2wchar(valStr.c_str(), CP_UTF8);
-
-			valStr = i.at("id").get<std::string>();
-			pi->_id = wmc.char2wchar(valStr.c_str(), CP_ACP);
-
-			try {
-				valStr = i.at("version").get<std::string>();
-				wstring newValStr(valStr.begin(), valStr.end());
-				pi->_version = Version(newValStr);
-
-				if (i.contains("npp-compatible-versions"))
-				{
-					json jNppCompatibleVer = i["npp-compatible-versions"];
-
-					string versionsStr = jNppCompatibleVer.get<std::string>();
-					wstring nppCompatibleVersionStr(versionsStr.begin(), versionsStr.end());
-					pi->_nppCompatibleVersions = getIntervalVersions(nppCompatibleVersionStr);
-				}
-
-				if (i.contains("old-versions-compatibility"))
-				{
-					json jOldVerCompatibility = i["old-versions-compatibility"];
-
-					string versionsStr = jOldVerCompatibility.get<std::string>();
-					wstring oldVerCompatibilityStr(versionsStr.begin(), versionsStr.end());
-					pi->_oldVersionCompatibility = getTwoIntervalVersions(oldVerCompatibilityStr);
-				}
-			}
-			catch (const wstring& exceptionStr)
-			{
-				wstring msg = pi->_displayName;
-				msg += L": ";
-				throw msg + exceptionStr;
-			}
-			valStr = i.at("repository").get<std::string>();
-			pi->_repository = wmc.char2wchar(valStr.c_str(), CP_ACP);
-
-			valStr = i.at("homepage").get<std::string>();
-			pi->_homepage = wmc.char2wchar(valStr.c_str(), CP_ACP);
-
-			pl.push_back(pi);
-		}
-#if !defined(NDEBUG) 
-		catch (const wstring& exceptionStr)
-		{
-			::MessageBox(NULL, exceptionStr.c_str(), L"Exception caught in: PluginsAdmin loadFromJson()", MB_ICONERROR);
-			continue;
-		}
-
-		catch (std::exception& e)
-		{
-			::MessageBoxA(NULL, e.what(), "Exception caught in: PluginsAdmin loadFromJson()", MB_ICONERROR);
-			continue;
-		}
-#endif
-		catch (...) // If one of mandatory properties is missing or with the incorrect format, an exception is thrown then this plugin will be ignored
-		{
-#if !defined(NDEBUG) 
-			::MessageBoxA(NULL, "An unknown exception is just caught", "Unknown Exception", MB_OK);
-#endif
-			continue; 
-		}
-	}
-	return true;
-}
+// TeeJ-editor: loadFromJson() (online plugin catalog parser) removed.
 
 PluginUpdateInfo::PluginUpdateInfo(const std::wstring& fullFilePath, const std::wstring& fileName)
 {
@@ -786,90 +394,7 @@ PluginUpdateInfo::PluginUpdateInfo(const std::wstring& fullFilePath, const std::
 
 bool PluginsAdminDlg::initFromJson()
 {
-	// GUP.exe doesn't work under XP
-	winVer winVersion = (NppParameters::getInstance()).getWinVersion();
-	if (winVersion <= WV_XP)
-	{
-		return false;
-	}
-
-	if (!doesFileExist(_pluginListFullPath.c_str()))
-	{
-		return false;
-	}
-
-	if (!doesFileExist(_updaterFullPath.c_str()))
-	{
-		return false;
-	}
-
-	json j;
-
-#if !defined(NDEBUG) // if not debug, then it's release
-	
-	// load from nppPluginList.json instead of nppPluginList.dll
-#ifdef __MINGW32__
-	ifstream nppPluginListJson(wstring2string(_pluginListFullPath, CP_UTF8));
-#else // MSVC supports UTF-16 path names in file stream constructors 
-	ifstream nppPluginListJson(_pluginListFullPath);
-#endif
-	nppPluginListJson >> j;
-
-#else //RELEASE
-
-	// check the signature on default location : %APPDATA%\TeeJ-editor\plugins\config\pl\nppPluginList.dll or NPP_INST_DIR\plugins\config\pl\nppPluginList.dll
-	
-	SecurityGuard securityGuard;
-	bool isSecured = securityGuard.checkModule(_pluginListFullPath, nm_pluginList);
-
-	if (!isSecured)
-		return false;
-
-	isSecured = securityGuard.checkModule(_updaterFullPath, nm_gup);
-
-	if (isSecured)
-	{
-		HMODULE hLib = NULL;
-		hLib = ::LoadLibraryEx(_pluginListFullPath.c_str(), 0, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
-
-		if (!hLib)
-		{
-			// Error treatment
-			//printStr(L"LoadLibrary PB!!!");
-			return false;
-		}
-
-		HRSRC rc = ::FindResource(hLib, MAKEINTRESOURCE(IDR_PLUGINLISTJSONFILE), MAKEINTRESOURCE(TEXTFILE));
-		if (!rc)
-		{
-			::FreeLibrary(hLib);
-			return false;
-		}
-
-		HGLOBAL rcData = ::LoadResource(hLib, rc);
-		if (!rcData)
-		{
-			::FreeLibrary(hLib);
-			return false;
-		}
-
-		auto size = ::SizeofResource(hLib, rc);
-		auto data = static_cast<const char*>(::LockResource(rcData));
-
-		char* buffer = new char[size + 1];
-		::memcpy(buffer, data, size);
-		buffer[size] = '\0';
-
-		j = j.parse(buffer);
-
-		delete[] buffer;
-
-		::FreeLibrary(hLib);
-	}
-#endif
-
-	
-	return loadFromJson(_availableList._list, _pluginListVersion, j);
+	return false; // TeeJ-editor: no online plugin catalog (nppPluginList) in this fork
 }
 
 bool PluginsAdminDlg::updateList()

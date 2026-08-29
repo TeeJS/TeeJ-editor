@@ -1,0 +1,109 @@
+name: Upstream watch
+
+# Weekly: look for a new Notepad++ release upstream. If one exists that is not
+# yet merged into teej-editor, open a PR merging it. CI_build.yml then runs the
+# egress guard + x64 build on the PR, so a green PR means the merge still builds
+# and still contains no network/updater code.
+#
+# This runs on GitHub's infrastructure only. The editor itself never checks for
+# updates — that is the whole point of the fork.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'   # Mondays 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  UPSTREAM_REPO: notepad-plus-plus/notepad-plus-plus
+  FORK_BRANCH: teej-editor
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.FORK_BRANCH }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find latest upstream release
+        id: up
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag=$(gh release view --repo "$UPSTREAM_REPO" --json tagName -q .tagName)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Latest upstream release: $tag"
+
+      - name: Fetch upstream tag and decide
+        id: decide
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.up.outputs.tag }}
+        run: |
+          git remote add upstream "https://github.com/$UPSTREAM_REPO.git"
+          git fetch --no-tags upstream "refs/tags/$TAG:refs/tags/upstream-$TAG"
+          if git merge-base --is-ancestor "upstream-$TAG" "origin/$FORK_BRANCH"; then
+            echo "Already merged: $TAG is an ancestor of $FORK_BRANCH. Nothing to do."
+            echo "action=none" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          branch="upstream-merge/$TAG"
+          if gh pr list --state all --head "$branch" --json number -q '.[0].number' | grep -q .; then
+            echo "A PR for $branch already exists. Nothing to do."
+            echo "action=none" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "action=merge" >> "$GITHUB_OUTPUT"
+
+      - name: Attempt merge and open PR
+        if: steps.decide.outputs.action == 'merge'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.up.outputs.tag }}
+          BRANCH: ${{ steps.decide.outputs.branch }}
+        run: |
+          git config user.name  "upstream-watch[bot]"
+          git config user.email "upstream-watch@users.noreply.github.com"
+          git checkout -b "$BRANCH" "origin/$FORK_BRANCH"
+
+          if git merge --no-ff --no-edit "upstream-$TAG" -m "Merge upstream Notepad++ $TAG into $FORK_BRANCH"; then
+            status="clean"
+            body="Automatic merge of upstream **$TAG** into \`$FORK_BRANCH\` succeeded with **no conflicts**.
+
+Before merging, confirm CI is green — the **egress guard** and the **x64 build** must both pass. A red egress guard means upstream reintroduced network or updater code that must be removed by hand."
+          else
+            status="conflicts"
+            git merge --abort
+            # Push the upstream tag itself as the PR head: GitHub will show the
+            # upstream delta and flag the conflicts for local resolution.
+            git checkout -B "$BRANCH" "upstream-$TAG"
+            body="Upstream **$TAG** is available but merging it into \`$FORK_BRANCH\` produces **conflicts** (expected — they land on the code this fork deleted).
+
+Resolve locally:
+\`\`\`
+git fetch upstream --tags
+git checkout $FORK_BRANCH
+git merge $TAG
+# resolve conflicts — KEEP the fork's deletions of gup.exe / updater / Plugins Admin / web links
+git push
+\`\`\`
+Then run the egress guard and build via CI before releasing."
+          fi
+
+          git push -u origin "$BRANCH"
+          conflict_note=""; [ "$status" = "conflicts" ] && conflict_note=" (conflicts)"
+          gh pr create \
+            --base "$FORK_BRANCH" --head "$BRANCH" \
+            --title "Merge upstream Notepad++ $TAG$conflict_note" \
+            --body "$body" \
+            --label "upstream-merge" 2>/dev/null || \
+          gh pr create \
+            --base "$FORK_BRANCH" --head "$BRANCH" \
+            --title "Merge upstream Notepad++ $TAG$conflict_note" \
+            --body "$body"
+          echo "Opened PR for $TAG ($status)"

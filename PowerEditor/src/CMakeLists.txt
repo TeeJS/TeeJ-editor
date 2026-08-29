@@ -67,7 +67,6 @@ SET(projIncludDir	../../scintilla/include/
 
 SET(src_files
 			./DarkMode/DarkMode.cpp
-			./MISC/Common/verifySignedfile.cpp
 			./MISC/md5/md5Dlgs.cpp
 			./MISC/sha1/calc_sha1.cpp
 			./MISC/sha1/sha1.cpp
@@ -202,7 +201,6 @@ SET(include_files
 			./keys.h
 			./localizationString.h
 			./MISC/Common/Sorters.h
-			./MISC/Common/verifySignedfile.h
 			./MISC/md5/md5.h
 			./MISC/md5/md5Dlgs.h
 			./MISC/md5/md5Dlgs_rc.h

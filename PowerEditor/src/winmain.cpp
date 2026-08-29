@@ -39,7 +39,6 @@
 #include "Win32Exception.h" //Win32 exception
 #include "dpiManagerV2.h"
 #include "resource.h"
-#include "verifySignedfile.h"
 
 typedef std::vector<std::wstring> ParamVector;
 

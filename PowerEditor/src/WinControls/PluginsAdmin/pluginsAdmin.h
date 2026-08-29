@@ -194,9 +194,7 @@ protected:
 	intptr_t CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
 private :
-	std::wstring _updaterDir;
-	std::wstring _updaterFullPath;
-	std::wstring _pluginListFullPath;
+	std::wstring _pluginListFullPath; // TeeJ-editor: always empty (no online catalog)
 
 	TabBar _tab;
 
@@ -231,11 +229,4 @@ private :
 	bool initIncompatiblePluginList();
 	bool initDisabledPluginList();
 	bool loadFromPluginInfos();
-
-	bool exitToInstallRemovePlugins(Operation op, const std::vector<PluginUpdateInfo*>& puis, const std::wstring& customRoot = L"");
-
-	// Handles pa_deactivate / pa_activate: moves plugin folders between "plugins"
-	// and "plugins\disabled" (direction depends on op), then restarts TeeJ-editor the same
-	// way exitToInstallRemovePlugins() does for install/update/remove.
-	bool exitToDeactivateActivatePlugins(Operation op, const std::vector<PluginUpdateInfo*>& puis);
 };

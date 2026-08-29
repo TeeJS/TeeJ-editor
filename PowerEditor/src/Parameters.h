@@ -1765,7 +1765,6 @@ public:
 	}
 	UINT getNbTabCompactLabelLen() const { return _nppGUI._tabCompactLabelLen; }
 
-	static void buildGupParams(std::wstring& params);
 
 private:
 	NppParameters();
@@ -1913,10 +1912,6 @@ private:
 
 	std::wstring _initialCloudChoice;
 
-	std::wstring _wingupFullPath;
-	std::wstring _wingupParams;
-	std::wstring _wingupDir;
-	bool _isElevationRequired = false;
 	bool _isAdminMode = false;
 
 	bool _isRegForOSAppRestartDisabled = false;
@@ -1932,14 +1927,7 @@ private:
 	int _currentSystemCodepage = -1;
 
 public:
-	const std::wstring& getWingupFullPath() const { return _wingupFullPath; }
-	const std::wstring& getWingupParams() const { return _wingupParams; }
-	const std::wstring& getWingupDir() const { return _wingupDir; }
-	bool shouldDoUAC() const { return _isElevationRequired; }
-	void setWingupFullPath(const std::wstring& val2set) { _wingupFullPath = val2set; }
-	void setWingupParams(const std::wstring& val2set) { _wingupParams = val2set; }
-	void setWingupDir(const std::wstring& val2set) { _wingupDir = val2set; }
-	void setElevationRequired(bool val2set) { _isElevationRequired = val2set; }
+	// TeeJ-editor: wingup (gup.exe) path/params accessors removed — the updater is never launched.
 
 	bool doNppLogNetworkDriveIssue() const { return _doNppLogNetworkDriveIssue; }
 	bool isNppAutoUpdateDisabled() const { return _isNppAutoUpdateDisabled; }

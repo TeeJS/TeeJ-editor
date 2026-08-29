@@ -30,8 +30,7 @@
 
 //**********************************************************
 
-#define INFO_URL L"https://notepad-plus-plus.org/update/getDownloadUrl.php"
-#define FORCED_DOWNLOAD_DOMAIN L"https://github.com/notepad-plus-plus/notepad-plus-plus/"
+// TeeJ-editor: INFO_URL / FORCED_DOWNLOAD_DOMAIN (updater endpoints) removed.
 
 
 #ifndef IDC_STATIC
