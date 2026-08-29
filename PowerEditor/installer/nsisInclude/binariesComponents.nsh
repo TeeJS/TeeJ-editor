@@ -25,11 +25,11 @@ SectionGroup "Plugins" Plugins
 		
 		SetOutPath "$PLUGIN_INST_PATH\NppExport"
 !ifdef ARCH64
-		File "..\bin64\plugins\NppExport\NppExport.dll"
+		File /nonfatal "..\bin64\plugins\NppExport\NppExport.dll"
 !else ifdef ARCHARM64
-		File "..\binarm64\plugins\NppExport\NppExport.dll"
+		File /nonfatal "..\binarm64\plugins\NppExport\NppExport.dll"
 !else
-		File "..\bin\plugins\NppExport\NppExport.dll"
+		File /nonfatal "..\bin\plugins\NppExport\NppExport.dll"
 !endif
 	${MementoSectionEnd}
 
@@ -41,11 +41,11 @@ SectionGroup "Plugins" Plugins
 		
 		SetOutPath "$PLUGIN_INST_PATH\mimeTools"
 !ifdef ARCH64
-		File "..\bin64\plugins\mimeTools\mimeTools.dll"
+		File /nonfatal "..\bin64\plugins\mimeTools\mimeTools.dll"
 !else ifdef ARCHARM64
-		File "..\binarm64\plugins\mimeTools\mimeTools.dll"
+		File /nonfatal "..\binarm64\plugins\mimeTools\mimeTools.dll"
 !else
-		File "..\bin\plugins\mimeTools\mimeTools.dll"
+		File /nonfatal "..\bin\plugins\mimeTools\mimeTools.dll"
 !endif
 	${MementoSectionEnd}
 	
@@ -56,11 +56,11 @@ SectionGroup "Plugins" Plugins
 		
 		SetOutPath "$PLUGIN_INST_PATH\NppConverter"
 !ifdef ARCH64
-		File "..\bin64\plugins\NppConverter\NppConverter.dll"
+		File /nonfatal "..\bin64\plugins\NppConverter\NppConverter.dll"
 !else ifdef ARCHARM64
-		File "..\binarm64\plugins\NppConverter\NppConverter.dll"
+		File /nonfatal "..\binarm64\plugins\NppConverter\NppConverter.dll"
 !else
-		File "..\bin\plugins\NppConverter\NppConverter.dll"
+		File /nonfatal "..\bin\plugins\NppConverter\NppConverter.dll"
 !endif
 	${MementoSectionEnd}
 

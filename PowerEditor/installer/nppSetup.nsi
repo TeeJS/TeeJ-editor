@@ -47,7 +47,7 @@ OutFile ".\build\TeeJ-editor.${APPVERSION}.Installer.exe"
 !endif
 
 ; Sign uninstaller
-!uninstfinalize  'sign-installers.bat "%1"' = 0     ; %1 is replaced by the uninstaller exe to be signed.
+!uninstfinalize  '"${__FILEDIR__}\sign-installers.bat" "%1"' = 0     ; %1 is replaced by the uninstaller exe to be signed. (TeeJ-editor: anchored to the script dir so it resolves regardless of makensis' cwd)
 
 ; ------------------------------------------------------------------------
 ; Version Information
@@ -118,6 +118,18 @@ SectionEnd
 !include "nsisInclude\functionList.nsh"
 
 !include "nsisInclude\binariesComponents.nsh"
+
+; TeeJ-editor: the Explorer context-menu extension (NppShell.dll / NppShell.msix) is a separately
+; built, Notepad++-signed binary from another repository. It is not shipped. This section installs
+; nothing; it only cleans up an extension left behind by a previous Notepad++ install. It is defined
+; here (before .onInit) so ${explorerContextMenu} resolves when .onInit hides it.
+${MementoSection} "Context Menu Entry" explorerContextMenu
+	IfFileExists $INSTDIR\contextmenu\NppShell.dll 0 +2
+		ExecWait '"$winSysDir\rundll32.exe" "$INSTDIR\contextmenu\NppShell.dll",CleanupDll'
+	Delete "$INSTDIR\contextMenu\NppShell.dll"
+	Delete "$INSTDIR\contextMenu\NppShell.msix"
+	RMDir "$INSTDIR\contextMenu"
+${MementoSectionEnd}
 
 InstType "Minimalist"
 
@@ -193,6 +205,8 @@ notInSilentMode:
 	SectionSetText ${AutoUpdater} ""
 	!insertmacro UnSelectSection ${PluginsAdmin}
 	SectionSetText ${PluginsAdmin} ""
+	!insertmacro UnSelectSection ${explorerContextMenu}
+	SectionSetText ${explorerContextMenu} ""
 
 	; Begin of "/runNppAfterSilentInstall"
 	${GetParameters} $R0 
@@ -326,51 +340,6 @@ FunctionEnd
 
 !include "nsisInclude\themes.nsh"
 
-
-${MementoSection} "Context Menu Entry" explorerContextMenu
-	SetOverwrite try
-	SetOutPath "$INSTDIR\contextMenu\"
-	
-	IfFileExists $INSTDIR\contextmenu\NppShell.dll 0 +2
-		ExecWait '"$winSysDir\rundll32.exe" "$INSTDIR\contextmenu\NppShell.dll",CleanupDll'
-
-!ifdef ARCH64
-	File /oname=$INSTDIR\contextMenu\NppShell.msix "..\bin64\NppShell.msix"
-	File /oname=$INSTDIR\contextMenu\NppShell.dll "..\bin64\NppShell.x64.dll"
-!else ifdef ARCHARM64
-	File /oname=$INSTDIR\contextMenu\NppShell.msix "..\binarm64\NppShell.msix"
-	File /oname=$INSTDIR\contextMenu\NppShell.dll "..\binarm64\NppShell.arm64.dll"
-!else
-	; We need to test which arch we are running on, since 32bit exe can be run on both 32bit and 64bit Windows.
-	${If} ${RunningX64}
-		; We are running on 64bit Windows, so we need the msix as well, since it might be Windows 11.
-		File /oname=$INSTDIR\contextMenu\NppShell.msix "..\bin64\NppShell.msix"
-		File /oname=$INSTDIR\contextMenu\NppShell.dll "..\bin64\NppShell.x64.dll"
-	${Else}
-		; We are running on 32bit Windows, so no need for the msix file, since there is no way this could even be upgraded to Windows 11.
-		File /oname=$INSTDIR\contextMenu\NppShell.dll "..\bin\NppShell.x86.dll"
-	${EndIf}
-!endif
-
-	; Shell context menu entry
-	WriteRegStr HKCR "*\shell\ANotepad++64" "" "Notepad++ Context menu"
-	WriteRegStr HKCR "*\shell\ANotepad++64" "ExplorerCommandHandler" "{B298D29A-A6ED-11DE-BA8C-A68E55D89593}"
-	WriteRegStr HKCR "*\shell\ANotepad++64" "NeverDefault" ""
-
-	; CLSID registration
-	WriteRegStr HKCR "CLSID\{B298D29A-A6ED-11DE-BA8C-A68E55D89593}" "" "notepad++"
-	WriteRegStr HKCR "CLSID\{B298D29A-A6ED-11DE-BA8C-A68E55D89593}\InProcServer32" "" "$INSTDIR\contextMenu\NppShell.dll"
-	WriteRegStr HKCR "CLSID\{B298D29A-A6ED-11DE-BA8C-A68E55D89593}\InProcServer32" "ThreadingModel" "Apartment"
-
-	; Register MSIX for Windows 11 modern context menu
-	; Skip only for x86 Notepad++ installation on Windows 32 system
-!ifdef ARCH64 || ARCHARM64 ; x64 installer
-	Call RegisterMSIX
-!else ; 32 bits installer
-	ExecWait '"$winSysDir\regsvr32.exe" /s "$INSTDIR\contextMenu\NppShell.dll"'
-!endif
-
-${MementoSectionEnd}
 
 ${MementoSectionDone}
 
