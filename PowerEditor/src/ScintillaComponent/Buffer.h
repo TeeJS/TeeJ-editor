@@ -84,7 +84,7 @@ public:
 
 	void beNotifiedOfBufferChange(Buffer * theBuf, int mask);
 
-	void closeBuffer(BufferID, const ScintillaEditView* identifer);		//called by Notepad++
+	void closeBuffer(BufferID, const ScintillaEditView* identifer);		//called by TeeJ-editor
 
 	void addBufferReference(BufferID id, ScintillaEditView * identifer);	//called by Scintilla etc indirectly
 
@@ -462,8 +462,8 @@ private:
 
 	bool _isUnsync = false; // Buffer should be always dirty (with any undo/redo operation) if the editing buffer is unsynchronized with file on disk.
 	                        // By "unsynchronized" it means :
-	                        // 1. the file is deleted outside but the buffer in Notepad++ is kept.
-	                        // 2. the file is modified by another app but the buffer is not reloaded in Notepad++.
+	                        // 1. the file is deleted outside but the buffer in TeeJ-editor is kept.
+	                        // 2. the file is modified by another app but the buffer is not reloaded in TeeJ-editor.
 	                        // Note that if the buffer is untitled, there's no correspondent file on the disk so the buffer is considered as independent therefore synchronized.
 
 	bool _isLargeFile = false; // The loading of huge files will disable automatically 1. auto-completion 2. snapshot periode backup 3. backup on save 4. word wrap

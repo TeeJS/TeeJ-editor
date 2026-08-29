@@ -229,7 +229,7 @@ BufferID Notepad_plus::doOpen(const wstring& fileName, bool isRecursive, bool is
 	{
 		// TODO:
 		// for the raw filenames we can allow even the usually unsupported filenames in the future,
-		// but not now as it is not fully supported by the Notepad++ COM IFileDialog based Open/SaveAs dialogs
+		// but not now as it is not fully supported by the TeeJ-editor COM IFileDialog based Open/SaveAs dialogs
 		//if (isRawFileName)
 		//{
 		//	int answer = _nativeLangSpeaker.messageBox("OpenNonconformingWin32FileName",
@@ -244,7 +244,7 @@ BufferID Notepad_plus::doOpen(const wstring& fileName, bool isRecursive, bool is
 		//}
 		//else
 		//{
-			// unsupported, use the existing Notepad++ file dialog to report
+			// unsupported, use the existing TeeJ-editor file dialog to report
 			_nativeLangSpeaker.messageBox("OpenFileError",
 				_pPublicInterface->getHSelf(),
 				L"Cannot open file \"$STR_REPLACE$\".",
@@ -591,7 +591,7 @@ bool Notepad_plus::doReload(BufferID id, bool alert)
 	{
 		int answer = _nativeLangSpeaker.messageBox("DocReloadWarning",
 			_pPublicInterface->getHSelf(),
-			L"Are you sure you want to reload the current file and lose the changes made in Notepad++?",
+			L"Are you sure you want to reload the current file and lose the changes made in TeeJ-editor?",
 			L"Reload",
 			MB_YESNO | MB_ICONEXCLAMATION | MB_APPLMODAL);
 		if (answer != IDYES)
@@ -715,7 +715,7 @@ bool Notepad_plus::doSave(BufferID id, const wchar_t * filename, bool isCopy)
 	{
 		_nativeLangSpeaker.messageBox("FullReadOnlySavingForbidden",
 			_pPublicInterface->getHSelf(),
-			L"Cannot save file.\nThe Notepad++ full read-only saving forbidden mode prevented the file from being saved.",
+			L"Cannot save file.\nThe TeeJ-editor full read-only saving forbidden mode prevented the file from being saved.",
 			L"Save failed",
 			MB_OK);
 	}
@@ -759,16 +759,16 @@ bool Notepad_plus::doSave(BufferID id, const wchar_t * filename, bool isCopy)
 			}
 			else
 			{
-				// try to open Notepad++ in admin mode
+				// try to open TeeJ-editor in admin mode
 				const NppGUI& nppGui = NppParameters::getInstance().getNppGUI();
 				bool isSnapshotMode = nppGui.isSnapshotMode();
 				bool isAlwaysInMultiInstMode = nppGui._multiInstSetting == multiInst;
 				if (isSnapshotMode && !isAlwaysInMultiInstMode) // if both rememberSession && backup mode are enabled and "Always In Multi-Instance Mode" option not activated:
-				{                                               // Open the 2nd Notepad++ instance in Admin mode, then close the 1st instance.
+				{                                               // Open the 2nd TeeJ-editor instance in Admin mode, then close the 1st instance.
 
 					int openInAdminModeRes = _nativeLangSpeaker.messageBox("OpenInAdminMode",
 						_pPublicInterface->getHSelf(),
-						L"This file cannot be saved and it may be protected.\rDo you want to launch Notepad++ in Administrator mode?",
+						L"This file cannot be saved and it may be protected.\rDo you want to launch TeeJ-editor in Administrator mode?",
 						L"Save failed",
 						MB_YESNO);
 
@@ -788,7 +788,7 @@ bool Notepad_plus::doSave(BufferID id, const wchar_t * filename, bool isCopy)
 						{
 							_nativeLangSpeaker.messageBox("OpenInAdminModeFailed",
 								_pPublicInterface->getHSelf(),
-								L"Notepad++ cannot be opened in Administrator mode.",
+								L"TeeJ-editor cannot be opened in Administrator mode.",
 								L"Open in Administrator mode failed",
 								MB_OK);
 						}
@@ -800,11 +800,11 @@ bool Notepad_plus::doSave(BufferID id, const wchar_t * filename, bool isCopy)
 					}
 				}
 				else // rememberSession && backup mode are not both enabled, or "Always In Multi-Instance Mode" option is ON:
-				{    // Open only the file to save in Notepad++ of Administrator mode by keeping the current instance.
+				{    // Open only the file to save in TeeJ-editor of Administrator mode by keeping the current instance.
 
 					int openInAdminModeRes = _nativeLangSpeaker.messageBox("OpenInAdminModeWithoutCloseCurrent",
 						_pPublicInterface->getHSelf(),
-						L"The file cannot be saved and it may be protected.\rDo you want to launch Notepad++ in Administrator mode?",
+						L"The file cannot be saved and it may be protected.\rDo you want to launch TeeJ-editor in Administrator mode?",
 						L"Save failed",
 						MB_YESNO);
 
@@ -830,7 +830,7 @@ bool Notepad_plus::doSave(BufferID id, const wchar_t * filename, bool isCopy)
 						{
 							_nativeLangSpeaker.messageBox("OpenInAdminModeFailed",
 								_pPublicInterface->getHSelf(),
-								L"Notepad++ cannot be opened in Administrator mode.",
+								L"TeeJ-editor cannot be opened in Administrator mode.",
 								L"Open in Administrator mode failed",
 								MB_OK);
 						}
@@ -882,7 +882,7 @@ void Notepad_plus::doClose(BufferID id, int whichOne, bool doDeleteBackup)
 		bool fileExists = doesFileExist(fn);
 
 #ifndef	_WIN64
-		// For Notepad++ 32 bits, if the file doesn't exist, it could be redirected
+		// For TeeJ-editor 32 bits, if the file doesn't exist, it could be redirected
 		// So we turn Wow64 off
 		NppParameters& nppParam = NppParameters::getInstance();
 		bool isWow64Off = false;
@@ -1774,7 +1774,7 @@ bool Notepad_plus::fileSave(BufferID bufferID)
 
 	if (buf->isDirty())
 	{
-		if (buf->isReadOnly()) //cannot save if readonly in Notepad++ or in Windows
+		if (buf->isReadOnly()) //cannot save if readonly in TeeJ-editor or in Windows
 		{
 			_nativeLangSpeaker.messageBox("ReadOnlyFileCannotBeSaved",
 				_pPublicInterface->getHSelf(),
@@ -2080,7 +2080,7 @@ bool Notepad_plus::fileSaveAs(BufferID bufferID, bool isSaveCopy)
 		{
 			_nativeLangSpeaker.messageBox("FileAlreadyOpenedInNpp",
 				_pPublicInterface->getHSelf(),
-				L"The file is already opened in Notepad++.",
+				L"The file is already opened in TeeJ-editor.",
 				L"ERROR",
 				MB_OK | MB_ICONSTOP);
 			switchToFile(other);

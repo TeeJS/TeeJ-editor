@@ -66,50 +66,17 @@ SectionGroup "Plugins" Plugins
 
 SectionGroupEnd
 
+; TeeJ-editor: gup.exe (WinGUp auto-updater) is never shipped. This section installs nothing;
+; it only removes any updater left behind by a previous Notepad++ install.
 ${MementoSection} "Auto-Updater" AutoUpdater
-	${If} $noUpdater == "true"
-		Delete $INSTDIR\updater\*.*
-	${Else}
-		; libcurl.dll has been removed since WinGUp v5.4 (Notepad++ v8.9.1)
-		Delete "$INSTDIR\updater\libcurl.dll"
-
-		SetOverwrite on
-		SetOutPath "$INSTDIR\updater"
-!ifdef ARCH64
-		File "..\bin64\updater\GUP.exe"
-		File "..\bin64\updater\gup.xml"
-		File "..\bin64\updater\LICENSE"
-		File "..\bin64\updater\README.md"
-		File "..\bin64\updater\updater.ico"
-!else ifdef ARCHARM64
-		File "..\binarm64\updater\GUP.exe"
-		File "..\binarm64\updater\gup.xml"
-		File "..\binarm64\updater\LICENSE"
-		File "..\binarm64\updater\README.md"
-		File "..\binarm64\updater\updater.ico"
-!else
-		File "..\bin\updater\GUP.exe"
-		File "..\bin\updater\gup.xml"
-		File "..\bin\updater\LICENSE"
-		File "..\bin\updater\README.md"
-		File "..\bin\updater\updater.ico"
-!endif
-		SetOutPath "$PLUGINSDIR\gupLocalization"
-		File "..\bin\updater\translations\"
-	${EndIf}
-	
+	Delete "$INSTDIR\updater\*.*"
+	RMDir "$INSTDIR\updater"
 ${MementoSectionEnd}
 
+; TeeJ-editor: the network Plugins Admin (and its nppPluginList.dll catalog) is never shipped.
+; This section installs nothing; it only removes a catalog left by a previous Notepad++ install.
 ${MementoSection} "Plugins Admin" PluginsAdmin
-	SetOverwrite on
-	SetOutPath $ALLUSERS_PLUGIN_CONF_PATH
-!ifdef ARCH64
-	File "..\bin64\plugins\Config\nppPluginList.dll"
-!else ifdef ARCHARM64
-	File "..\binarm64\plugins\Config\nppPluginList.dll"
-!else
-	File "..\bin\plugins\Config\nppPluginList.dll"
-!endif
+	Delete "$ALLUSERS_PLUGIN_CONF_PATH\nppPluginList.dll"
 ${MementoSectionEnd}
 
 ;Uninstall section

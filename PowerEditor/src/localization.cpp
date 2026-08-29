@@ -1522,7 +1522,7 @@ int NativeLangSpeaker::messageBox(const char* msgBoxTagName, HWND hWnd, const wc
 	return NppDarkMode::darkMessageBoxW(hWnd, msg.c_str(), title.c_str(), msgBoxType);
 }
 
-// Default English localization during Notepad++ launch
+// Default English localization during TeeJ-editor launch
 // is handled in NppDarkMode::subclassButtonControl.
 void NativeLangSpeaker::resizeCheckboxRadioBtn(HWND hWnd)
 {

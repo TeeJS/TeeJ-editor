@@ -472,7 +472,7 @@ https://npp-user-manual.org/docs/config-files/#the-context-menu-contextmenu-xml\
 		<!-- \r\n\
 		Use MenuEntryName and MenuItemName to localize your commands to add. \r\n\
 		The values should be in English but not in translated language.\r\n\
-		(You can set Notepad++ language back to English from Preferences dialog via menu \"Settings->Preferences...\")\r\n\
+		(You can set TeeJ-editor language back to English from Preferences dialog via menu \"Settings->Preferences...\")\r\n\
 		-->\r\n\
 		<Item MenuEntryName=\"Edit\" MenuItemName=\"Cut\"/>\r\n\
 		<Item MenuEntryName=\"Edit\" MenuItemName=\"Copy\"/>\r\n\

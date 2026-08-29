@@ -570,7 +570,7 @@ public:
 		, _month(month)
 		, _day(day)
 	{
-		assert(year > 0 && year <= 9999); // I don't think Notepad++ will last till AD 10000 :)
+		assert(year > 0 && year <= 9999); // I don't think TeeJ-editor will last till AD 10000 :)
 		assert(month > 0 && month <= 12);
 		assert(day > 0 && day <= 31);
 		assert(!(month == 2 && day > 29) &&
@@ -589,7 +589,7 @@ public:
 
 	void now();
 
-	std::string toString() const // Return Notepad++ date format : YYYYMMDD
+	std::string toString() const // Return TeeJ-editor date format : YYYYMMDD
 	{
 		static constexpr size_t bufSize = 16;
 		char dateStr[bufSize]{};
@@ -1138,7 +1138,7 @@ public:
 	//Lexilla::GetLibraryPropertyNamesFn fnGLPN = nullptr;
 	//Lexilla::SetLibraryPropertyFn fnSLP = nullptr;
 
-	// For Notepad++
+	// For TeeJ-editor
 	ExternalLexerAutoIndentMode _autoIndentMode = ExternalLexerAutoIndentMode::Standard;
 };
 

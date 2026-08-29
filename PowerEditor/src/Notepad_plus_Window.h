@@ -60,7 +60,7 @@ public:
 		return _hIconAbsent;
 	}
 
-	static HWND gNppHWND;	//static handle to Notepad++ window, NULL if non-existent
+	static HWND gNppHWND;	//static handle to TeeJ-editor window, NULL if non-existent
 
 	void setStartupBgColor(COLORREF BgColor);
 
@@ -107,7 +107,7 @@ private:
 	static LRESULT CALLBACK Notepad_plus_Proc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
 	LRESULT runProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
 
-	static constexpr wchar_t _className[32] = L"Notepad++";
+	static constexpr wchar_t _className[32] = L"TeeJ-editor";
 	bool _isPrelaunch = false;
 	bool _disablePluginsManager = false;
 

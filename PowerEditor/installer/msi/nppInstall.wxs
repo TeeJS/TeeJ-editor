@@ -1,7 +1,7 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 
-	<Package	Name="Notepad++ (x64)"
-				Manufacturer="Notepad++ team (MSI installer)"
+	<Package	Name="TeeJ-editor (x64)"
+				Manufacturer="TeeJ-editor team (MSI installer)"
 				Version="$(var.Version)"
 				UpgradeCode="{CDB13460-04DF-4708-A7FD-4CB4A0684605}">
 
@@ -21,7 +21,7 @@
 		<!--
 		Write version information to Details' Comments field in Property of MSI file
 		-->
-		<SummaryInformation Comments="Notepad++ v$(var.Version) (x64)" />
+		<SummaryInformation Comments="TeeJ-editor v$(var.Version) (x64)" />
 
 		<!--
 		Consider the 4th digit of version number for the updating, with AllowSameVersionUpgrades="yes"
@@ -32,7 +32,7 @@
 		Installation directory structure
 		-->
 		<StandardDirectory Id="ProgramFiles64Folder">
-			<Directory Id="INSTALLFOLDER" Name="Notepad++">
+			<Directory Id="INSTALLFOLDER" Name="TeeJ-editor">
 				<Directory Id="ContextMenuFolder" Name="contextMenu" />
 				<Directory Id="UpdaterFolder" Name="updater" />
 				<Directory Id="AutoCompletionFolder" Name="autoCompletion" />
@@ -51,7 +51,7 @@
 		</StandardDirectory>
 
 		<StandardDirectory Id="ProgramMenuFolder">
-			<Directory Id="ApplicationProgramsFolder" Name="Notepad++" />
+			<Directory Id="ApplicationProgramsFolder" Name="TeeJ-editor" />
 		</StandardDirectory>
 
 	
@@ -61,8 +61,8 @@
 		<ComponentGroup Id="ShortcutComponentGroup" Directory="ApplicationProgramsFolder">
 			<Component Id="cmp_NppShortcut" Guid="{9DF5F816-BF4F-496B-9095-E1E8C01B89CE}"> 
 			<Shortcut	Id="startmenuShortcut"
-						Name="Notepad++"
-						Target="[INSTALLFOLDER]notepad++.exe"
+						Name="TeeJ-editor"
+						Target="[INSTALLFOLDER]TeeJ-editor.exe"
 						WorkingDirectory="INSTALLFOLDER" />
 
 			<RegistryValue Root="HKCU" Key="Software\Notepad++" Name="StartMenuShortcut" Type="integer" Value="1"  KeyPath="yes"/>
@@ -114,7 +114,7 @@
 			</Component>
 		</ComponentGroup>
 
-		<Feature Id="MainApplication" Title="Notepad++ Files" Level="1">
+		<Feature Id="MainApplication" Title="TeeJ-editor Files" Level="1">
 			<ComponentGroupRef Id="CoreComponentGroup" />
 
 			<ComponentGroupRef Id="ShortcutComponentGroup" />

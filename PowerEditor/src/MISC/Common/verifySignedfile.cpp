@@ -118,7 +118,7 @@ bool SecurityGuard::checkSha256(const std::wstring& filePath, NppModule module2c
 
 // Debug use
 bool doLogCertifError = false;
-const wstring errorLogPath = L"%LOCALAPPDATA%\\Notepad++\\log\\nppComponentCertErrors.log";
+const wstring errorLogPath = L"%LOCALAPPDATA%\\TeeJ-editor\\log\\nppComponentCertErrors.log";
 
 static void writeCertVerifLog(const wchar_t* logFileName, const wchar_t* log2write)
 {

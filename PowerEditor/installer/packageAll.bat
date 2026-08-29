@@ -23,15 +23,16 @@ REM commands to sign
 
 set signtoolWin11="C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe"
 
-set Sign_by_GlobalSignCert=%signtoolWin11% sign /n "NOTEPAD++" /d "Notepad++" /du "https://notepad-plus-plus.org" /tr http://timestamp.globalsign.com/tsa/r6advanced1 /td SHA256 /fd SHA256
+set Sign_by_GlobalSignCert=%signtoolWin11% sign /n "NOTEPAD++" /d "TeeJ-editor" /du "https://notepad-plus-plus.org" /tr http://timestamp.globalsign.com/tsa/r6advanced1 /td SHA256 /fd SHA256
 
 set DOUBLE_SIGNING=/as
 
 REM files to be signed
 
-set nppBinaries=..\bin\notepad++.exe ..\bin64\notepad++.exe ..\binarm64\notepad++.exe
+set nppBinaries=..\bin\TeeJ-editor.exe ..\bin64\TeeJ-editor.exe ..\binarm64\TeeJ-editor.exe
 
-set componentsBinaries=..\bin\plugins\Config\nppPluginList.dll ..\bin64\plugins\Config\nppPluginList.dll ..\binarm64\plugins\Config\nppPluginList.dll ..\bin\updater\GUP.exe ..\bin64\updater\GUP.exe ..\binarm64\updater\GUP.exe
+rem TeeJ-editor ships no updater (GUP.exe) nor plugin catalog (nppPluginList.dll), so nothing to sign here
+set componentsBinaries=
 
 set pluginBinaries=..\bin\plugins\NppExport\NppExport.dll ..\bin64\plugins\NppExport\NppExport.dll ..\binarm64\plugins\NppExport\NppExport.dll ..\bin\plugins\mimeTools\mimeTools.dll ..\bin64\plugins\mimeTools\mimeTools.dll ..\binarm64\plugins\mimeTools\mimeTools.dll ..\bin\plugins\NppConverter\NppConverter.dll ..\bin64\plugins\NppConverter\NppConverter.dll ..\binarm64\plugins\NppConverter\NppConverter.dll
 
@@ -79,7 +80,7 @@ copy /Y ..\src\toolbarButtonsConf_example.xml .\minimalist\
 If ErrorLevel 1 goto End
 copy /Y .\xml4Config\doLocalConf.xml .\minimalist\
 If ErrorLevel 1 goto End
-copy /Y ..\bin\"notepad++.exe" .\minimalist\
+copy /Y ..\bin\"TeeJ-editor.exe" .\minimalist\
 If ErrorLevel 1 goto End
 copy /Y ".\themes\DarkModeDefault.xml" .\minimalist\themes\
 If ErrorLevel 1 goto End
@@ -108,7 +109,7 @@ copy /Y ..\src\toolbarButtonsConf_example.xml .\minimalist64\
 If ErrorLevel 1 goto End
 copy /Y .\xml4Config\doLocalConf.xml .\minimalist64\
 If ErrorLevel 1 goto End
-copy /Y ..\bin64\"notepad++.exe" .\minimalist64\
+copy /Y ..\bin64\"TeeJ-editor.exe" .\minimalist64\
 If ErrorLevel 1 goto End
 copy /Y ".\themes\DarkModeDefault.xml" .\minimalist64\themes\
 If ErrorLevel 1 goto End
@@ -137,7 +138,7 @@ copy /Y ..\src\toolbarButtonsConf_example.xml .\minimalistArm64\
 If ErrorLevel 1 goto End
 copy /Y .\xml4Config\doLocalConf.xml .\minimalistArm64\
 If ErrorLevel 1 goto End
-copy /Y ..\binarm64\"notepad++.exe" .\minimalistArm64\
+copy /Y ..\binarm64\"TeeJ-editor.exe" .\minimalistArm64\
 If ErrorLevel 1 goto End
 copy /Y ".\themes\DarkModeDefault.xml" .\minimalistArm64\themes\
 If ErrorLevel 1 goto End
@@ -217,7 +218,7 @@ copy /Y ..\src\toolbarButtonsConf_example.xml .\zipped.package.release\
 If ErrorLevel 1 goto End
 copy /Y .\xml4Config\doLocalConf.xml .\zipped.package.release\
 If ErrorLevel 1 goto End
-copy /Y ..\bin\"notepad++.exe" .\zipped.package.release\
+copy /Y ..\bin\"TeeJ-editor.exe" .\zipped.package.release\
 If ErrorLevel 1 goto End
 
 
@@ -239,7 +240,7 @@ copy /Y ..\src\toolbarButtonsConf_example.xml .\zipped.package.release64\
 If ErrorLevel 1 goto End
 copy /Y .\xml4Config\doLocalConf.xml .\zipped.package.release64\
 If ErrorLevel 1 goto End
-copy /Y ..\bin64\"notepad++.exe" .\zipped.package.release64\
+copy /Y ..\bin64\"TeeJ-editor.exe" .\zipped.package.release64\
 If ErrorLevel 1 goto End
 
 
@@ -260,7 +261,7 @@ copy /Y ..\src\toolbarButtonsConf_example.xml .\zipped.package.releaseArm64\
 If ErrorLevel 1 goto End
 copy /Y .\xml4Config\doLocalConf.xml .\zipped.package.releaseArm64\
 If ErrorLevel 1 goto End
-copy /Y ..\binarm64\"notepad++.exe" .\zipped.package.releaseArm64\
+copy /Y ..\binarm64\"TeeJ-editor.exe" .\zipped.package.releaseArm64\
 If ErrorLevel 1 goto End
 
 
@@ -290,11 +291,11 @@ If ErrorLevel 1 goto End
 
 
 rem localizations: Copy all files into Notepad++ 32-bit/64-bit package folders
-copy /Y ".\nativeLang\*.xml" .\zipped.package.release\localization\
+copy /Y ".\nativeLang\english.xml" .\zipped.package.release\localization\
 If ErrorLevel 1 goto End
-copy /Y ".\nativeLang\*.xml" .\zipped.package.release64\localization\
+copy /Y ".\nativeLang\english.xml" .\zipped.package.release64\localization\
 If ErrorLevel 1 goto End
-copy /Y ".\nativeLang\*.xml" .\zipped.package.releaseArm64\localization\
+copy /Y ".\nativeLang\english.xml" .\zipped.package.releaseArm64\localization\
 If ErrorLevel 1 goto End
 
 rem files API: Copy all files into Notepad++ 32-bit/64-bit package folders
@@ -338,64 +339,28 @@ If ErrorLevel 1 goto End
 rem Use Plugins Admin but disable auto-update for x86 portable package
 copy /Y .\xml4Config\disableNppAutoUpdate.xml .\zipped.package.release\
 If ErrorLevel 1 goto End
-copy /Y ..\bin\plugins\Config\nppPluginList.dll .\zipped.package.release\plugins\Config\
-If ErrorLevel 1 goto End
-copy /Y ..\bin\updater\GUP.exe .\zipped.package.release\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\bin\updater\gup.xml .\zipped.package.release\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\bin\updater\LICENSE .\zipped.package.release\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\bin\updater\README.md .\zipped.package.release\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\bin\updater\updater.ico .\zipped.package.release\updater\
-If ErrorLevel 1 goto End
 
 rem Use Plugins Admin but disable auto-update for x64 portable package
 copy /Y .\xml4Config\disableNppAutoUpdate.xml .\zipped.package.release64\
-If ErrorLevel 1 goto End
-copy /Y ..\bin64\plugins\Config\nppPluginList.dll .\zipped.package.release64\plugins\Config\
-If ErrorLevel 1 goto End
-copy /Y ..\bin64\updater\GUP.exe .\zipped.package.release64\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\bin64\updater\gup.xml .\zipped.package.release64\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\bin64\updater\LICENSE .\zipped.package.release64\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\bin64\updater\README.md .\zipped.package.release64\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\bin64\updater\updater.ico .\zipped.package.release64\updater\
 If ErrorLevel 1 goto End
 
 rem Use Plugins Admin but disable auto-update for ARM64 portable package
 copy /Y .\xml4Config\disableNppAutoUpdate.xml .\zipped.package.releaseArm64\
 If ErrorLevel 1 goto End
-copy /Y ..\binarm64\plugins\Config\nppPluginList.dll .\zipped.package.releaseArm64\plugins\Config\
-If ErrorLevel 1 goto End
-copy /Y ..\binarm64\updater\GUP.exe .\zipped.package.releaseArm64\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\binarm64\updater\gup.xml .\zipped.package.releaseArm64\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\binarm64\updater\LICENSE .\zipped.package.releaseArm64\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\binarm64\updater\README.md .\zipped.package.releaseArm64\updater\
-If ErrorLevel 1 goto End
-copy /Y ..\binarm64\updater\updater.ico .\zipped.package.releaseArm64\updater\
-If ErrorLevel 1 goto End
 
 
 
-"C:\Program Files\7-Zip\7z.exe" a -r .\build\npp.portable.minimalist.7z .\minimalist\*
+"C:\Program Files\7-Zip\7z.exe" a -r .\build\TeeJ-editor.portable.minimalist.7z .\minimalist\*
 If ErrorLevel 1 goto End
-"C:\Program Files\7-Zip\7z.exe" a -r .\build\npp.portable.minimalist.x64.7z .\minimalist64\*
+"C:\Program Files\7-Zip\7z.exe" a -r .\build\TeeJ-editor.portable.minimalist.x64.7z .\minimalist64\*
 If ErrorLevel 1 goto End
-"C:\Program Files\7-Zip\7z.exe" a -r .\build\npp.portable.minimalist.arm64.7z .\minimalistArm64\*
+"C:\Program Files\7-Zip\7z.exe" a -r .\build\TeeJ-editor.portable.minimalist.arm64.7z .\minimalistArm64\*
 If ErrorLevel 1 goto End
 
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip -r .\build\npp.portable.zip .\zipped.package.release\*
+"C:\Program Files\7-Zip\7z.exe" a -tzip -r .\build\TeeJ-editor.portable.zip .\zipped.package.release\*
 If ErrorLevel 1 goto End
-"C:\Program Files\7-Zip\7z.exe" a -r .\build\npp.portable.7z .\zipped.package.release\*
+"C:\Program Files\7-Zip\7z.exe" a -r .\build\TeeJ-editor.portable.7z .\zipped.package.release\*
 If ErrorLevel 1 goto End
 rem IF EXIST "%PROGRAMFILES(X86)%" ("%PROGRAMFILES(x86)%\NSIS\Unicode\makensis.exe" nppSetup.nsi) ELSE ("%PROGRAMFILES%\NSIS\Unicode\makensis.exe" nppSetup.nsi)
 IF EXIST "%PROGRAMFILES(X86)%" ("%PROGRAMFILES(x86)%\NSIS\makensis.exe" nppSetup.nsi) ELSE ("%PROGRAMFILES%\NSIS\makensis.exe" nppSetup.nsi)
@@ -406,17 +371,17 @@ rem Remove old build
 rmdir /S /Q .\zipped.package.release
 
 rem 
-"C:\Program Files\7-Zip\7z.exe" a -tzip -r .\build\npp.portable.x64.zip .\zipped.package.release64\*
+"C:\Program Files\7-Zip\7z.exe" a -tzip -r .\build\TeeJ-editor.portable.x64.zip .\zipped.package.release64\*
 If ErrorLevel 1 goto End
 
-"C:\Program Files\7-Zip\7z.exe" a -r .\build\npp.portable.x64.7z .\zipped.package.release64\*
+"C:\Program Files\7-Zip\7z.exe" a -r .\build\TeeJ-editor.portable.x64.7z .\zipped.package.release64\*
 If ErrorLevel 1 goto End
 
 rem 
-"C:\Program Files\7-Zip\7z.exe" a -tzip -r .\build\npp.portable.arm64.zip .\zipped.package.releaseArm64\*
+"C:\Program Files\7-Zip\7z.exe" a -tzip -r .\build\TeeJ-editor.portable.arm64.zip .\zipped.package.releaseArm64\*
 If ErrorLevel 1 goto End
 
-"C:\Program Files\7-Zip\7z.exe" a -r .\build\npp.portable.arm64.7z .\zipped.package.releaseArm64\*
+"C:\Program Files\7-Zip\7z.exe" a -r .\build\TeeJ-editor.portable.arm64.7z .\zipped.package.releaseArm64\*
 If ErrorLevel 1 goto End
 
 rem set var locally in this batch file
@@ -424,13 +389,13 @@ setlocal
 
 cd build
 
-:: Get npp.6.9.Installer.exe in %nppInstallerVar%
-for %%f in (npp.*.Installer.exe) do set "nppInstallerVar=%%f"
+:: Get TeeJ-editor.6.9.Installer.exe in %nppInstallerVar%
+for %%f in (TeeJ-editor.*.Installer.exe) do set "nppInstallerVar=%%f"
 
 
 rem get the version string "6.9" in %VERSION%
-set "VERSION=%nppInstallerVar:npp.=%"
-rem replace "npp." with nothing in "npp.6.9.Installer.exe" - now VERSION is "6.9.Installer.exe"
+set "VERSION=%nppInstallerVar:TeeJ-editor.=%"
+rem replace "TeeJ-editor." with nothing in "TeeJ-editor.6.9.Installer.exe" - now VERSION is "6.9.Installer.exe"
 
 rem echo %VERSION%
 
@@ -446,39 +411,39 @@ If ErrorLevel 1 goto End
 cd ..\build\
 
 
-ren npp.portable.zip npp.%VERSION%.portable.zip
+ren TeeJ-editor.portable.zip TeeJ-editor.%VERSION%.portable.zip
 If ErrorLevel 1 goto End
 
-ren npp.portable.x64.zip npp.%VERSION%.portable.x64.zip
+ren TeeJ-editor.portable.x64.zip TeeJ-editor.%VERSION%.portable.x64.zip
 If ErrorLevel 1 goto End
 
-ren npp.portable.arm64.zip npp.%VERSION%.portable.arm64.zip
+ren TeeJ-editor.portable.arm64.zip TeeJ-editor.%VERSION%.portable.arm64.zip
 If ErrorLevel 1 goto End
 
-ren npp.portable.7z npp.%VERSION%.portable.7z
+ren TeeJ-editor.portable.7z TeeJ-editor.%VERSION%.portable.7z
 If ErrorLevel 1 goto End
 
-ren npp.portable.x64.7z npp.%VERSION%.portable.x64.7z
+ren TeeJ-editor.portable.x64.7z TeeJ-editor.%VERSION%.portable.x64.7z
 If ErrorLevel 1 goto End
 
-ren npp.portable.arm64.7z npp.%VERSION%.portable.arm64.7z
+ren TeeJ-editor.portable.arm64.7z TeeJ-editor.%VERSION%.portable.arm64.7z
 If ErrorLevel 1 goto End
 
-ren npp.portable.minimalist.7z npp.%VERSION%.portable.minimalist.7z
+ren TeeJ-editor.portable.minimalist.7z TeeJ-editor.%VERSION%.portable.minimalist.7z
 If ErrorLevel 1 goto End
 
-ren npp.portable.minimalist.x64.7z npp.%VERSION%.portable.minimalist.x64.7z
+ren TeeJ-editor.portable.minimalist.x64.7z TeeJ-editor.%VERSION%.portable.minimalist.x64.7z
 If ErrorLevel 1 goto End
 
-ren npp.portable.minimalist.arm64.7z npp.%VERSION%.portable.minimalist.arm64.7z
+ren TeeJ-editor.portable.minimalist.arm64.7z TeeJ-editor.%VERSION%.portable.minimalist.arm64.7z
 If ErrorLevel 1 goto End
 
-ren npp.Installer.x64.msi npp.%VERSION%.Installer.x64.msi
+ren npp.Installer.x64.msi TeeJ-editor.%VERSION%.Installer.x64.msi
 If ErrorLevel 1 goto End
 
 if %SIGN% == 0 goto NoSignInstaller
 
-%Sign_by_GlobalSignCert% %nppInstallerVar% npp.%VERSION%.Installer.x64.exe npp.%VERSION%.Installer.arm64.exe npp.%VERSION%.Installer.x64.msi
+%Sign_by_GlobalSignCert% %nppInstallerVar% TeeJ-editor.%VERSION%.Installer.x64.exe TeeJ-editor.%VERSION%.Installer.arm64.exe TeeJ-editor.%VERSION%.Installer.x64.msi
 If ErrorLevel 1 goto End
 
 :NoSignInstaller

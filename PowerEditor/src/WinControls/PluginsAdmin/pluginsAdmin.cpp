@@ -355,8 +355,8 @@ bool PluginsAdminDlg::exitToInstallRemovePlugins(Operation op, const vector<Plug
 	NativeLangSpeaker *pNativeSpeaker = nppParameters.getNativeLangSpeaker();
 	auto res = pNativeSpeaker->messageBox("ExitToUpdatePlugins",
 		_hSelf,
-		L"If you click YES, you will quit Notepad++ to continue the operations.\nNotepad++ will be restarted after all the operations are terminated.\nContinue?",
-		L"Notepad++ is about to exit",
+		L"If you click YES, you will quit TeeJ-editor to continue the operations.\nTeeJ-editor will be restarted after all the operations are terminated.\nContinue?",
+		L"TeeJ-editor is about to exit",
 		MB_YESNO | MB_APPLMODAL);
 
 	if (res == IDYES)
@@ -367,7 +367,7 @@ bool PluginsAdminDlg::exitToInstallRemovePlugins(Operation op, const vector<Plug
 		nppParam.setWingupFullPath(updaterFullPath);
 
 		// op: -clean or "-clean -unzip"
-		// application path: Notepad++ path to be relaunched
+		// application path: TeeJ-editor path to be relaunched
 		// plugin global path
 		// plugin names or "plugin names + download url"
 		nppParam.setWingupParams(updaterParams);
@@ -375,7 +375,7 @@ bool PluginsAdminDlg::exitToInstallRemovePlugins(Operation op, const vector<Plug
 		// gup folder path
 		nppParam.setWingupDir(updaterDir);
 
-		// Quite Notepad++ so just before quitting Notepad++ launches gup with needed arguments  
+		// Quite TeeJ-editor so just before quitting TeeJ-editor launches gup with needed arguments
 		::PostMessage(_hParent, WM_COMMAND, IDM_FILE_EXIT, 0);
 	}
 
@@ -384,7 +384,7 @@ bool PluginsAdminDlg::exitToInstallRemovePlugins(Operation op, const vector<Plug
 
 // Moves plugin folders between "plugins" and "plugins\disabled" (direction
 // depends on "op"), via gup's "-moveFolder" flag, then restarts
-// Notepad++ the same way exitToInstallRemovePlugins() does. The checked items
+// TeeJ-editor the same way exitToInstallRemovePlugins() does. The checked items
 // are already user-confirmed (checkbox selection), so no extra overwrite
 // prompt is needed here - gup always overwrites on conflict.
 bool PluginsAdminDlg::exitToDeactivateActivatePlugins(Operation op, const vector<PluginUpdateInfo*>& puis)
@@ -437,8 +437,8 @@ bool PluginsAdminDlg::exitToDeactivateActivatePlugins(Operation op, const vector
 	NativeLangSpeaker* pNativeSpeaker = nppParameters.getNativeLangSpeaker();
 	auto res = pNativeSpeaker->messageBox("ExitToUpdatePlugins",
 		_hSelf,
-		L"If you click YES, you will quit Notepad++ to continue the operations.\nNotepad++ will be restarted after all the operations are terminated.\nContinue?",
-		L"Notepad++ is about to exit",
+		L"If you click YES, you will quit TeeJ-editor to continue the operations.\nTeeJ-editor will be restarted after all the operations are terminated.\nContinue?",
+		L"TeeJ-editor is about to exit",
 		MB_YESNO | MB_APPLMODAL);
 
 	if (res == IDYES)
@@ -459,7 +459,7 @@ bool PluginsAdminDlg::exitToDeactivateActivatePlugins(Operation op, const vector
 
 bool PluginsAdminDlg::installPlugins()
 {
-	// Need to exit Notepad++
+	// Need to exit TeeJ-editor
 
 	vector<size_t> indexes = _availableList.getCheckedIndexes();
 	vector<PluginUpdateInfo*> puis = _availableList.fromUiIndexesToPluginInfos(indexes);
@@ -469,7 +469,7 @@ bool PluginsAdminDlg::installPlugins()
 
 bool PluginsAdminDlg::updatePlugins()
 {
-	// Need to exit Notepad++
+	// Need to exit TeeJ-editor
 
 	vector<size_t> indexes = _updateList.getCheckedIndexes();
 	vector<PluginUpdateInfo*> puis = _updateList.fromUiIndexesToPluginInfos(indexes);
@@ -479,7 +479,7 @@ bool PluginsAdminDlg::updatePlugins()
 
 bool PluginsAdminDlg::removePlugins(int iTab)
 {
-	// Need to exit Notepad++
+	// Need to exit TeeJ-editor
 
 	wstring disabledRootDir;
 	PluginViewList* pList = nullptr;
@@ -519,7 +519,7 @@ bool PluginsAdminDlg::removePlugins(int iTab)
 
 bool PluginsAdminDlg::enableOrDisablePlugins(Operation op)
 {
-	// Need to exit Notepad++
+	// Need to exit TeeJ-editor
 
 	PluginViewList* pList = nullptr;
 	if (op == pa_deactivate)
@@ -817,7 +817,7 @@ bool PluginsAdminDlg::initFromJson()
 
 #else //RELEASE
 
-	// check the signature on default location : %APPDATA%\Notepad++\plugins\config\pl\nppPluginList.dll or NPP_INST_DIR\plugins\config\pl\nppPluginList.dll
+	// check the signature on default location : %APPDATA%\TeeJ-editor\plugins\config\pl\nppPluginList.dll or NPP_INST_DIR\plugins\config\pl\nppPluginList.dll
 	
 	SecurityGuard securityGuard;
 	bool isSecured = securityGuard.checkModule(_pluginListFullPath, nm_pluginList);

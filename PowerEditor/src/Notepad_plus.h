@@ -250,6 +250,7 @@ public:
 	void setFindReplaceFolderFilter(const wchar_t* dir, const wchar_t* filters);
 	std::vector<std::wstring> addNppComponents(const wchar_t* destDir, const wchar_t* extFilterName, const wchar_t* extFilter);
 	std::vector<std::wstring> addNppPlugins(const wchar_t* extFilterName, const wchar_t* extFilter);
+	bool installPluginFromZip(); // TeeJ-editor: offline plugin installer (extracts a local .zip into the plugins folder)
 	int getHtmlXmlEncoding(const wchar_t* fileName) const;
 
 	HACCEL getAccTable() const {
@@ -347,7 +348,7 @@ private:
 	PluginsAdminDlg _pluginsAdminDlg;
 	DocumentPeeker _documentPeeker;
 
-	// a handle list of all the Notepad++ dialogs
+	// a handle list of all the TeeJ-editor dialogs
 	std::vector<HWND> _hModelessDlgs;
 
 	LastRecentFileList _lastRecentFileList;
@@ -410,7 +411,7 @@ private:
 	bool _isAdministrator = false;
 	bool _isSyncingZoom = false;
 
-	bool _isNppSessionSavedAtExit = false; // guard flag, it prevents emptying of the Notepad++ session.xml in case of multiple WM_ENDSESSION or WM_CLOSE messages
+	bool _isNppSessionSavedAtExit = false; // guard flag, it prevents emptying of the TeeJ-editor session.xml in case of multiple WM_ENDSESSION or WM_CLOSE messages
 
 	ScintillaCtrls _scintillaCtrls4Plugins;
 

@@ -70,6 +70,10 @@
     <Import Project="notepadPlus.Cpp.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <!-- TeeJ-editor: output exe name (default would be the project name "Notepad++") -->
+    <TargetName>TeeJ-editor</TargetName>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>

@@ -133,8 +133,8 @@ void Notepad_plus::macroPlayback(Macro macro, std::vector<Document>* pDocs4EndUA
 			Document doc = pDocs4EndUA->back();
 			if (MainFileManager.getBufferFromDocument(doc) == BUFFER_INVALID)
 			{
-				// affected doc no longer exists (a macro step closed its associated Notepad++ tab/buffer),
-				// the ending undo action is not needed (until Notepad++ supports tab/buffer closing undo)
+				// affected doc no longer exists (a macro step closed its associated TeeJ-editor tab/buffer),
+				// the ending undo action is not needed (until TeeJ-editor supports tab/buffer closing undo)
 			}
 			else
 			{
@@ -2314,7 +2314,7 @@ void Notepad_plus::command(int id)
 					// Not in admin mode, and file might be protected. So we can't change the file attributes.
 					_nativeLangSpeaker.messageBox("NoAdminRight2ChangeReadOnlyFileAttribute",
 						_pPublicInterface->getHSelf(),
-						L"Please run Notepad++ as administrator to change the file attributes.",
+						L"Please run TeeJ-editor as administrator to change the file attributes.",
 						L"Changing file read-only attribute failed",
 						MB_OK | MB_ICONWARNING);
 				}
@@ -3423,18 +3423,18 @@ void Notepad_plus::command(int id)
 		case IDM_SETTING_IMPORTPLUGIN :
         {
 			// Copy plugins to Plugins Home
-            const wchar_t *extFilterName = L"Notepad++ plugin";
+            const wchar_t *extFilterName = L"TeeJ-editor plugin";
             const wchar_t *extFilter = L".dll";
             vector<wstring> copiedFiles = addNppPlugins(extFilterName, extFilter);
 
-            // Tell users to restart Notepad++ to load plugin
+            // Tell users to restart TeeJ-editor to load plugin
 			if (copiedFiles.size())
 			{
 				NativeLangSpeaker *pNativeSpeaker = (NppParameters::getInstance()).getNativeLangSpeaker();
 				pNativeSpeaker->messageBox("NeedToRestartToLoadPlugins",
 					_pPublicInterface->getHSelf(),
-					L"You have to restart Notepad++ to load plugins you installed.",
-					L"Notepad++ needs to be relaunched",
+					L"You have to restart TeeJ-editor to load plugins you installed.",
+					L"TeeJ-editor needs to be relaunched",
 					MB_OK | MB_APPLMODAL);
 			}
             break;
@@ -3443,7 +3443,7 @@ void Notepad_plus::command(int id)
         case IDM_SETTING_IMPORTSTYLETHEMES :
         {
             // get plugin source path
-            const wchar_t *extFilterName = L"Notepad++ style theme";
+            const wchar_t *extFilterName = L"TeeJ-editor style theme";
             const wchar_t *extFilter = L".xml";
             const wchar_t *destDir = L"themes";
 
@@ -3469,13 +3469,9 @@ void Notepad_plus::command(int id)
 
 		case IDM_SETTING_PLUGINADM:
 		{
-			bool isFirstTime = !_pluginsAdminDlg.isCreated();
-			_pluginsAdminDlg.doDialog(_nativeLangSpeaker.isRTL());
-			if (isFirstTime)
-			{
-				_nativeLangSpeaker.changePluginsAdminDlgLang(_pluginsAdminDlg);
-				_pluginsAdminDlg.updateList();
-			}
+			// TeeJ-editor: offline plugin install — extract a local .zip into the plugins folder
+			// (no network, no gup.exe). Replaces the removed network Plugins Admin.
+			installPluginFromZip();
 			break;
 		}
 
@@ -3516,7 +3512,7 @@ void Notepad_plus::command(int id)
         {
 			_nativeLangSpeaker.messageBox("ContextMenuXmlEditWarning",
 				_pPublicInterface->getHSelf(),
-				L"Editing contextMenu.xml allows you to modify your Notepad++ popup context menu on edit zone.\rYou have to restart your Notepad++ to take effect after modifying contextMenu.xml.",
+				L"Editing contextMenu.xml allows you to modify your TeeJ-editor popup context menu on edit zone.\rYou have to restart your TeeJ-editor to take effect after modifying contextMenu.xml.",
 				L"Editing contextMenu",
 				MB_OK|MB_APPLMODAL);
 
@@ -3778,22 +3774,7 @@ void Notepad_plus::command(int id)
 			break;
 		}
 
-		case IDM_HOMESWEETHOME :
-		{
-			::ShellExecute(NULL, L"open", L"https://notepad-plus-plus.org/", NULL, NULL, SW_SHOWNORMAL);
-			break;
-		}
-		case IDM_PROJECTPAGE :
-		{
-			::ShellExecute(NULL, L"open", L"https://github.com/notepad-plus-plus/notepad-plus-plus/", NULL, NULL, SW_SHOWNORMAL);
-			break;
-		}
-
-		case IDM_ONLINEDOCUMENT:
-		{
-			::ShellExecute(NULL, L"open", L"https://npp-user-manual.org/", NULL, NULL, SW_SHOWNORMAL);
-			break;
-		}
+		// TeeJ-editor: Home / Project Page / Online Manual / Forum browser links removed — this build never contacts the internet.
 
 		case IDM_CMDLINEARGUMENTS:
 		{
@@ -3801,67 +3782,10 @@ void Notepad_plus::command(int id)
 			break;
 		}
 
-		case IDM_FORUM:
-		{
-			::ShellExecute(NULL, L"open", L"https://community.notepad-plus-plus.org/", NULL, NULL, SW_SHOWNORMAL);
-			break;
-		}
-
 		case IDM_UPDATE_NPP :
 		case IDM_CONFUPDATERPROXY :
 		{
-			// wingup doesn't work with the obsolete security layer (API) under xp since downloads are secured with SSL on notepad_plus_plus.org
-			const NppParameters& nppParams = NppParameters::getInstance();
-			winVer ver = nppParams.getWinVersion();
-			if (ver <= WV_XP)
-			{
-				long res = _nativeLangSpeaker.messageBox("XpUpdaterProblem",
-					_pPublicInterface->getHSelf(),
-					L"Notepad++ updater is not compatible with XP due to the obsolete security layer under XP.\rDo you want to go to Notepad++ page to download the latest version?",
-					L"Notepad++ Updater",
-					MB_YESNO);
-
-				if (res == IDYES)
-				{
-					::ShellExecute(NULL, L"open", L"https://notepad-plus-plus.org/downloads/", NULL, NULL, SW_SHOWNORMAL);
-				}
-			}
-			else
-			{
-				wstring updaterDir = nppParams.getNppPath();
-				pathAppend(updaterDir, L"updater");
-
-				wstring updaterFullPath = updaterDir;
-				pathAppend(updaterFullPath, L"gup.exe");
-
-
-#if !defined(NDEBUG)  // if not debug, then it's release
-				bool isCertifVerified = true;
-#else //RELEASE
-				// check the signature on updater
-				SecurityGuard securityGuard;
-				bool isCertifVerified = securityGuard.checkModule(updaterFullPath, nm_gup);
-#endif
-				if (isCertifVerified)
-				{
-					wstring param;
-					bool isElevationRequired = false;
-
-					if (id == IDM_CONFUPDATERPROXY)
-					{
-						param = L"-options";
-						isElevationRequired = needsElevation4Access(updaterDir, true); // proxy settings storage is ".\updater\gupOptions.xml"
-					}
-					else
-					{
-						nppParams.buildGupParams(param);
-						param += L" -verbose";
-					}
-
-					Process updater(updaterFullPath.c_str(), param.c_str(), updaterDir.c_str());
-					updater.run(isElevationRequired);
-				}
-			}
+			// TeeJ-editor: auto-updater removed — this build never contacts the internet.
 			break;
 		}
 
@@ -4023,7 +3947,7 @@ void Notepad_plus::command(int id)
 
 		case IDM_LANG_UDLCOLLECTION_PROJECT_SITE:
 		{
-			::ShellExecute(NULL, L"open", L"https://github.com/notepad-plus-plus/userDefinedLanguages", NULL, NULL, SW_SHOWNORMAL);
+			// TeeJ-editor: online UDL collection link removed — this build never contacts the internet.
 			break;
 		}
 

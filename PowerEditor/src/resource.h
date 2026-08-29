@@ -17,9 +17,9 @@
 #pragma once
 
 
-//************ Notepad++ version **************************
+//************ TeeJ-editor version **************************
 
-#define NOTEPAD_PLUS_VERSION L"Notepad++ v8.9.8"
+#define NOTEPAD_PLUS_VERSION L"TeeJ-editor v8.9.8"
 
 // should be X.Y : ie. if VERSION_DIGITALVALUE == 4, 7, 1, 0 , then X = 4, Y = 71
 // ex : #define VERSION_VALUE L"5.63\0"
@@ -481,8 +481,8 @@
 #define MARKER_PLUGINS          1
 #define MARKER_PLUGINS_LIMIT   15
 
-#define INDICATOR_PLUGINS          9  // indicators 8 and below are reserved by Notepad++ (URL_INDIC=8)
-#define INDICATOR_PLUGINS_LIMIT   20  // indicators 21 and up are reserved by Notepad++ (SCE_UNIVERSAL_FOUND_STYLE_EXT5=21)
+#define INDICATOR_PLUGINS          9  // indicators 8 and below are reserved by TeeJ-editor (URL_INDIC=8)
+#define INDICATOR_PLUGINS_LIMIT   20  // indicators 21 and up are reserved by TeeJ-editor (SCE_UNIVERSAL_FOUND_STYLE_EXT5=21)
 
 
 

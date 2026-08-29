@@ -155,8 +155,8 @@ public:
 
 private:
 	ScintillaEditView** _ppEditView = nullptr;
-	std::wstring _xmlDirPath; // The 1st place to load function list files. Usually it's "%APPDATA%\Notepad++\functionList\"
-	std::wstring _xmlDirInstalledPath; // Where Notepad++ is installed. The 2nd place to load function list files. Usually it's "%PROGRAMFILES%\Notepad++\functionList\" 
+	std::wstring _xmlDirPath; // The 1st place to load function list files. Usually it's "%APPDATA%\TeeJ-editor\functionList\"
+	std::wstring _xmlDirInstalledPath; // Where TeeJ-editor is installed. The 2nd place to load function list files. Usually it's "%PROGRAMFILES%\TeeJ-editor\functionList\"
 
 	std::unique_ptr<ParserInfo> _parsers[L_EXTERNAL + nbMaxUserDefined] = { nullptr };
 	int _currentUDIndex = L_EXTERNAL;

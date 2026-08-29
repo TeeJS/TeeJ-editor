@@ -184,9 +184,9 @@ FunctionEnd
 	StrCmp $1 "Admin" 0 +2
 		SetShellVarContext all
 	
-	Delete "$DESKTOP\Notepad++.lnk"
-	Delete "$SMPROGRAMS\Notepad++.lnk"
-	Delete "$SMPROGRAMS\Notepad++\Notepad++.lnk"
+	Delete "$DESKTOP\TeeJ-editor.lnk"
+	Delete "$SMPROGRAMS\TeeJ-editor.lnk"
+	Delete "$SMPROGRAMS\Notepad++\TeeJ-editor.lnk"
 	Delete "$SMPROGRAMS\Notepad++\readme.lnk"
 
 	RMDir /r "${dir2remove}"
@@ -202,7 +202,7 @@ Section Uninstall
 	;Remove from registry...
 	DeleteRegKey HKLM "${UNINSTALL_REG_KEY}"
 	DeleteRegKey HKLM "SOFTWARE\${APPNAME}"
-	DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\notepad++.exe"
+	DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\TeeJ-editor.exe"
 
 	; Delete self
 	Delete "$INSTDIR\uninstall.exe"
@@ -216,9 +216,9 @@ Section Uninstall
 	StrCmp $1 "Admin" 0 +2
 		SetShellVarContext all ; make context for all user
 	
-	Delete "$DESKTOP\Notepad++.lnk"
-	Delete "$SMPROGRAMS\Notepad++.lnk"
-	Delete "$SMPROGRAMS\${APPNAME}\Notepad++.lnk"
+	Delete "$DESKTOP\TeeJ-editor.lnk"
+	Delete "$SMPROGRAMS\TeeJ-editor.lnk"
+	Delete "$SMPROGRAMS\${APPNAME}\TeeJ-editor.lnk"
 	Delete "$SMPROGRAMS\${APPNAME}\readme.lnk"
 	
 
@@ -227,7 +227,7 @@ Section Uninstall
 	Delete "$INSTDIR\change.log"
 	Delete "$INSTDIR\LICENSE"
 
-	Delete "$INSTDIR\notepad++.exe"
+	Delete "$INSTDIR\TeeJ-editor.exe"
 	Delete "$INSTDIR\readme.txt"
 	
 	${If} $doLocalConf == "true"

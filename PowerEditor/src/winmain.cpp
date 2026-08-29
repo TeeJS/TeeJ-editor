@@ -59,7 +59,7 @@ void allowForbidPrivilegeMessages(const Notepad_plus_Window& notepad_plus_plus, 
 	const DWORD MSGFLT_DISALLOW = 2;
 	#endif
 	// Tell UAC that lower integrity processes are allowed to send WM_COPYDATA (or other) messages to this process (or window)
-	// This (WM_COPYDATA) allows opening new files to already opened elevated Notepad++ process via explorer context menu.
+	// This (WM_COPYDATA) allows opening new files to already opened elevated TeeJ-editor process via explorer context menu.
 	if (winVer >= WV_VISTA || winVer == WV_UNKNOWN)
 	{
 		HMODULE hDll = GetModuleHandle(L"user32.dll");
@@ -121,7 +121,7 @@ void parseCommandLine(const wchar_t* commandLine, ParamVector& paramVector)
 	bool isStringInArg = false;
 	bool isInWhiteSpace = true;
 
-	int zArg = 0; // for "-z" argument: Causes Notepad++ to ignore the next command line argument (a single word, or a phrase in quotes).
+	int zArg = 0; // for "-z" argument: Causes TeeJ-editor to ignore the next command line argument (a single word, or a phrase in quotes).
 	              // The only intended and supported use for this option is for the Notepad Replacement syntax.
 
 	bool shouldBeTerminated = false; // If "-z" argument has been found, zArg value will be increased from 0 to 1.
@@ -363,22 +363,22 @@ const wchar_t FLAG_MONITORING_MODE[] = L"-monitoringMode";
 void doException(Notepad_plus_Window & notepad_plus_plus)
 {
 	Win32Exception::removeHandler();	//disable exception handler after exception, we don't want corrupt data structures to crash the exception handler
-	::MessageBox(Notepad_plus_Window::gNppHWND, L"Notepad++ will attempt to save any unsaved data. However, data loss is very likely.", L"Recovery initiating", MB_OK | MB_ICONINFORMATION);
+	::MessageBox(Notepad_plus_Window::gNppHWND, L"TeeJ-editor will attempt to save any unsaved data. However, data loss is very likely.", L"Recovery initiating", MB_OK | MB_ICONINFORMATION);
 
 	wchar_t tmpDir[1024];
 	GetTempPath(1024, tmpDir);
 	std::wstring emergencySavedDir = tmpDir;
-	emergencySavedDir += L"\\Notepad++ RECOV";
+	emergencySavedDir += L"\\TeeJ-editor RECOV";
 
 	bool res = notepad_plus_plus.emergency(emergencySavedDir);
 	if (res)
 	{
-		std::wstring displayText = L"Notepad++ was able to successfully recover some unsaved documents, or nothing to be saved could be found.\r\nYou can find the results at :\r\n";
+		std::wstring displayText = L"TeeJ-editor was able to successfully recover some unsaved documents, or nothing to be saved could be found.\r\nYou can find the results at :\r\n";
 		displayText += emergencySavedDir;
 		::MessageBox(Notepad_plus_Window::gNppHWND, displayText.c_str(), L"Recovery success", MB_OK | MB_ICONINFORMATION);
 	}
 	else
-		::MessageBox(Notepad_plus_Window::gNppHWND, L"Unfortunately, Notepad++ was not able to save your work. We are sorry for any lost data.", L"Recovery failure", MB_OK | MB_ICONERROR);
+		::MessageBox(Notepad_plus_Window::gNppHWND, L"Unfortunately, TeeJ-editor was not able to save your work. We are sorry for any lost data.", L"Recovery failure", MB_OK | MB_ICONERROR);
 }
 
 // Looks for -z arguments and strips command line arguments following those, if any
@@ -400,30 +400,6 @@ void stripIgnoredParams(ParamVector & params)
 			++it;
 		}
 	}
-}
-
-bool launchUpdater(const std::wstring& updaterFullPath, const std::wstring& updaterDir)
-{
-	NppParameters& nppParameters = NppParameters::getInstance();
-	NppGUI& nppGui = nppParameters.getNppGUI();
-
-	// check if update interval elapsed
-	Date today(0);
-	if (today < nppGui._autoUpdateOpt._nextUpdateDate)
-		return false;
-
-	std::wstring updaterParams;
-	nppParameters.buildGupParams(updaterParams);
-
-	Process updater(updaterFullPath.c_str(), updaterParams.c_str(), updaterDir.c_str());
-	updater.run();
-
-	// Update next update date
-	if (nppGui._autoUpdateOpt._intervalDays < 0) // Make sure interval days value is positive
-		nppGui._autoUpdateOpt._intervalDays = 0 - nppGui._autoUpdateOpt._intervalDays;
-	nppGui._autoUpdateOpt._nextUpdateDate = Date(nppGui._autoUpdateOpt._intervalDays);
-
-	return true;
 }
 
 DWORD nppUacSave(const wchar_t* wszTempFilePath, const wchar_t* wszProtectedFilePath2Save)
@@ -531,7 +507,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 {
 	g_nppStartTimePoint = std::chrono::steady_clock::now();
 	
-	// Notepad++ UAC OPS /////////////////////////////////////////////////////////////////////////////////////////////
+	// TeeJ-editor UAC OPS /////////////////////////////////////////////////////////////////////////////////////////////
 	if ((lstrlenW(pCmdLine) > 0) && (__argc >= 2)) // safe (if pCmdLine is NULL, lstrlen returns 0)
 	{
 		const wchar_t* wszNppUacOpSign = __wargv[1];
@@ -567,11 +543,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 				return static_cast<int>(nppUacCreateEmptyFile(__wargv[2]));
 			}
 		}
-	} // Notepad++ UAC OPS////////////////////////////////////////////////////////////////////////////////////////////
+	} // TeeJ-editor UAC OPS////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool TheFirstOne = true;
 	::SetLastError(NO_ERROR);
-	::CreateMutex(NULL, false, L"nppInstance");
+	::CreateMutex(NULL, false, L"TeeJEditorInstance");
 	if (::GetLastError() == ERROR_ALREADY_EXISTS)
 		TheFirstOne = false;
 
@@ -686,14 +662,12 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	NppDarkMode::initDarkMode();
 	DPIManagerV2::initDpiAPI();
 
-	bool doUpdateNpp = nppGui._autoUpdateOpt._doAutoUpdate != NppGUI::autoupdate_disabled;
-	bool updateAtExit = nppGui._autoUpdateOpt._doAutoUpdate == NppGUI::autoupdate_on_exit;
 	bool doUpdatePluginList = nppGui._autoUpdateOpt._doAutoUpdate != NppGUI::autoupdate_disabled;
 
-	if (doFunctionListExport || doPrintAndQuit) // export functionlist feature will serialize functionlist on the disk, then exit Notepad++. So it's important to not launch into existing instance, and keep it silent.
+	if (doFunctionListExport || doPrintAndQuit) // export functionlist feature will serialize functionlist on the disk, then exit TeeJ-editor. So it's important to not launch into existing instance, and keep it silent.
 	{
 		isMultiInst = true;
-		doUpdateNpp = doUpdatePluginList = false;
+		doUpdatePluginList = false;
 		cmdLineParams._isNoSession = true;
 	}
 
@@ -811,24 +785,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	auto upNotepadWindow = std::make_unique<Notepad_plus_Window>();
 	Notepad_plus_Window & notepad_plus_plus = *upNotepadWindow.get();
 
-	std::wstring updaterDir = nppParameters.getNppPath();
-	updaterDir += L"\\updater\\";
+	// TeeJ-editor: auto-updater removed — this build never contacts the internet.
+	nppGui._doesExistUpdater = false;
 
-	std::wstring updaterFullPath = updaterDir + L"gup.exe";
-
-	bool isUpExist = nppGui._doesExistUpdater = doesFileExist(updaterFullPath.c_str());
-
-	// wingup doesn't work with the obsolete security layer (API) under xp since downloads are secured with SSL on notepad-plus-plus.org
 	winVer ver = nppParameters.getWinVersion();
-	bool isGtXP = ver > WV_XP;
-
-	SecurityGuard securityGuard;
-	bool isSignatureOK = securityGuard.checkModule(updaterFullPath, nm_gup);
-
-	if (TheFirstOne && isUpExist && isGtXP && isSignatureOK && doUpdateNpp && !updateAtExit && !nppParameters.isNppAutoUpdateDisabled())
-	{
-		launchUpdater(updaterFullPath, updaterDir);
-	}
 
 	MSG msg{};
 	msg.wParam = 0;
@@ -876,7 +836,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 	{
 		isException = true;
 		wchar_t message[1024];
-		wsprintf(message, L"An exception occurred. Notepad++ cannot recover and must be shut down.\r\nThe exception details are as follows:\r\n"
+		wsprintf(message, L"An exception occurred. TeeJ-editor cannot recover and must be shut down.\r\nThe exception details are as follows:\r\n"
 			L"Code:\t0x%08X\r\nType:\t%S\r\nException address: 0x%p", ex.code(), ex.what(), ex.where());
 		::MessageBox(Notepad_plus_Window::gNppHWND, message, L"Win32Exception", MB_OK | MB_ICONERROR);
 		mdump.writeDump(ex.info());
@@ -895,17 +855,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance
 		doException(notepad_plus_plus);
 	}
 
-	doUpdateNpp = nppGui._autoUpdateOpt._doAutoUpdate != NppGUI::autoupdate_disabled; // refresh, maybe user activated these opts in Preferences
-	updateAtExit = nppGui._autoUpdateOpt._doAutoUpdate == NppGUI::autoupdate_on_exit; // refresh
-	if (!isException && !nppParameters.isEndSessionCritical() && TheFirstOne && isUpExist && isGtXP && isSignatureOK && doUpdateNpp && updateAtExit)
-	{
-		if (launchUpdater(updaterFullPath, updaterDir))
-		{
-			// for updating the nextUpdateDate in the already saved config.xml
-			nppParameters.createXmlTreeFromGUIParams();
-			nppParameters.saveConfig_xml();
-		}
-	}
+	// TeeJ-editor: auto-updater removed — nothing to launch on exit.
 
 	return static_cast<int>(msg.wParam);
 }

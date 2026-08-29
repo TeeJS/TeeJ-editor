@@ -18,6 +18,7 @@
 
 #include <shlwapi.h>
 #include <wininet.h>
+#include <shldisp.h> // TeeJ-editor: IShellDispatch, for native (no-gup) zip extraction
 
 #include <ctime>
 #include <memory>
@@ -507,16 +508,7 @@ LRESULT Notepad_plus::init(HWND hwnd)
 
 	runMenuItems.attach(hRunMenu, runPosBase, IDM_SETTING_SHORTCUT_MAPPER_RUN, L"Modify Shortcut/Delete Command...");
 
-	// Updater menu item
-	if (!nppGUI._doesExistUpdater || nppParam.isNppAutoUpdateDisabled())
-	{
-		::DeleteMenu(_mainMenuHandle, IDM_UPDATE_NPP, MF_BYCOMMAND);
-		::DeleteMenu(_mainMenuHandle, IDM_CONFUPDATERPROXY, MF_BYCOMMAND);
-		HMENU hHelpMenu = ::GetSubMenu(_mainMenuHandle, MENUINDEX_HELP);
-		if (hHelpMenu)
-			::DeleteMenu(hHelpMenu, 7, MF_BYPOSITION); // SEPARATOR
-		::DrawMenuBar(hwnd);
-	}
+	// TeeJ-editor: auto-updater removed — update menu items are gone from the resource.
 	//Languages Menu
 	HMENU hLangMenu = ::GetSubMenu(_mainMenuHandle, MENUINDEX_LANGUAGE);
 
@@ -2472,7 +2464,7 @@ int Notepad_plus::doSaveOrNot(const wchar_t* fn, bool isMulti)
 	if ((NppParameters::getInstance()).isEndSessionCritical())
 		return IDCANCEL; // simulate Esc-key or Cancel-button as there should not be any big delay / code-flow block
 
-	// In case Notepad++ is minimized into taskbar or iconized into notification zone
+	// In case TeeJ-editor is minimized into taskbar or iconized into notification zone
 	if (::IsIconic(_pPublicInterface->getHSelf()))
 	{
 		::ShowWindow(_pPublicInterface->getHSelf(), SW_RESTORE);
@@ -2514,7 +2506,7 @@ int Notepad_plus::doSaveOrNot(const wchar_t* fn, bool isMulti)
 
 int Notepad_plus::doSaveAll()
 {
-	// In case Notepad++ is iconized into notification zone
+	// In case TeeJ-editor is iconized into notification zone
 	if (!::IsWindowVisible(_pPublicInterface->getHSelf()))
 	{
 		::ShowWindow(_pPublicInterface->getHSelf(), SW_SHOW);
@@ -2537,7 +2529,7 @@ int Notepad_plus::doReloadOrNot(const wchar_t *fn, bool dirty)
 	if (dirty)
 		return _nativeLangSpeaker.messageBox("DoReloadOrNotAndLooseChange",
 			_pPublicInterface->getHSelf(),
-			L"\"$STR_REPLACE$\"\r\rThis file has been modified by another program.\rDo you want to reload it and lose the changes made in Notepad++?",
+			L"\"$STR_REPLACE$\"\r\rThis file has been modified by another program.\rDo you want to reload it and lose the changes made in TeeJ-editor?",
 			L"Reload",
 			MB_YESNO | MB_DEFBUTTON2 | MB_APPLMODAL | MB_ICONEXCLAMATION,
 			0, // not used
@@ -4245,7 +4237,7 @@ void Notepad_plus::setTitle()
 		result += buf->getFullPathName();
 	}
 	result += L" - ";
-	result += _pPublicInterface->getClassName();
+	result += L"TeeJ-editor"; // TeeJ-editor: visible brand (window class stays "Notepad++" for plugin compat)
 
 	if (_isAdministrator)
 		result += L" [Administrator]";
@@ -4580,7 +4572,7 @@ void Notepad_plus::dropFiles(HDROP hdrop)
 		else if ((_subEditView.getHSelf() == hWin) || (_subDocTab.getHSelf() == hWin))
 			switchEditViewTo(SUB_VIEW);
 		//else
-			// do not change the current Notepad++ edit-view
+			// do not change the current TeeJ-editor edit-view
 
 		int filesDropped = ::DragQueryFileW(hdrop, 0xffffffff, NULL, 0);
 
@@ -4663,7 +4655,7 @@ void Notepad_plus::dropFiles(HDROP hdrop)
 
 void Notepad_plus::checkModifiedDocument(bool bCheckOnlyCurrentBuffer)
 {
-	//this will trigger buffer updates. If the status changes, Notepad++ will be informed and can do its magic
+	//this will trigger buffer updates. If the status changes, TeeJ-editor will be informed and can do its magic
 	MainFileManager.checkFilesystemChanges(bCheckOnlyCurrentBuffer);
 }
 
@@ -6736,7 +6728,7 @@ void Notepad_plus::notifyBufferChanged(Buffer * buffer, int mask)
 						// Since the file content has changed but the user doesn't want to reload it, set state to dirty
 						buffer->setDirty(true);
 
-						// buffer in Notepad++ is not synchronized anymore with the file on disk
+						// buffer in TeeJ-editor is not synchronized anymore with the file on disk
 						buffer->setUnsync(true);
 
 						break;	//abort
@@ -6745,7 +6737,7 @@ void Notepad_plus::notifyBufferChanged(Buffer * buffer, int mask)
 				// Set _isLoadedDirty false so when the document clean state is reached the icon will be set to blue
 				buffer->setLoadedDirty(false);
 
-				// buffer in Notepad++ is synchronized with the file on disk
+				// buffer in TeeJ-editor is synchronized with the file on disk
 				buffer->setUnsync(false);
 
 				doReload(buffer->getID(), false);
@@ -6808,7 +6800,7 @@ void Notepad_plus::notifyBufferChanged(Buffer * buffer, int mask)
 					}
 					else
 					{
-						// buffer in Notepad++ is not synchronized anymore with the file on disk
+						// buffer in TeeJ-editor is not synchronized anymore with the file on disk
 						buffer->setUnsync(true);
 					}
 				}
@@ -6865,7 +6857,7 @@ void Notepad_plus::notifyBufferChanged(Buffer * buffer, int mask)
 
 	if (mask & (BufferChangeLanguage))
 	{
-		checkLangsMenu(-1);	//let Notepad++ do search for the item
+		checkLangsMenu(-1);	//let TeeJ-editor do search for the item
 		setLangStatus(buffer->getLangType());
 		if (mainActive)
 			_autoCompleteMain.setLanguage(buffer->getLangType());
@@ -7220,6 +7212,290 @@ vector<wstring> Notepad_plus::addNppPlugins(const wchar_t *extFilterName, const 
     return copiedFiles;
 }
 
+// TeeJ-editor: count files (and total bytes) under dir recursively. Used to detect when the
+// asynchronous shell extraction has settled.
+static void countTreeRecursive(const std::wstring& dir, long long& files, long long& bytes, int depth = 0)
+{
+	if (depth > 12)
+		return;
+
+	std::wstring pattern = dir;
+	pathAppend(pattern, L"*");
+	WIN32_FIND_DATA fd{};
+	HANDLE h = ::FindFirstFile(pattern.c_str(), &fd);
+	if (h == INVALID_HANDLE_VALUE)
+		return;
+
+	do
+	{
+		if (wcscmp(fd.cFileName, L".") == 0 || wcscmp(fd.cFileName, L"..") == 0)
+			continue;
+
+		std::wstring child = dir;
+		pathAppend(child, fd.cFileName);
+		if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			countTreeRecursive(child, files, bytes, depth + 1);
+		}
+		else
+		{
+			++files;
+			bytes += (static_cast<long long>(fd.nFileSizeHigh) << 32) | fd.nFileSizeLow;
+		}
+	} while (::FindNextFile(h, &fd));
+
+	::FindClose(h);
+}
+
+// TeeJ-editor: extract a .zip into destDir using the Windows shell zip handler.
+// No external process (no gup.exe), no network. CopyHere is asynchronous and creates each
+// destination subfolder before filling it, so a top-level item count would report "done" too
+// early. Instead we wait until the whole extracted tree stops growing: poll the recursive
+// (file count, total bytes) and accept once it is non-empty and unchanged for a few intervals.
+// ponytail: stability poll (~450ms settle, 60s cap) — robust for small plugin zips, not a
+// general-purpose unzip progress API.
+static bool shellUnzip(const std::wstring& zipPath, const std::wstring& destDir)
+{
+	bool ok = false;
+	HRESULT hrInit = ::CoInitialize(nullptr);
+
+	IShellDispatch* pShell = nullptr;
+	if (SUCCEEDED(::CoCreateInstance(CLSID_Shell, nullptr, CLSCTX_INPROC_SERVER, IID_IShellDispatch, reinterpret_cast<void**>(&pShell))) && pShell)
+	{
+		VARIANT vZip{};  vZip.vt = VT_BSTR;  vZip.bstrVal = ::SysAllocString(zipPath.c_str());
+		VARIANT vDest{}; vDest.vt = VT_BSTR; vDest.bstrVal = ::SysAllocString(destDir.c_str());
+
+		Folder* pZipFolder = nullptr;
+		Folder* pDestFolder = nullptr;
+		pShell->NameSpace(vZip, &pZipFolder);
+		pShell->NameSpace(vDest, &pDestFolder);
+
+		if (pZipFolder && pDestFolder)
+		{
+			FolderItems* pItems = nullptr;
+			long srcCount = 0;
+			if (SUCCEEDED(pZipFolder->Items(&pItems)) && pItems)
+				pItems->get_Count(&srcCount);
+
+			if (pItems && srcCount > 0)
+			{
+				VARIANT vItems{}; vItems.vt = VT_DISPATCH;
+				pItems->QueryInterface(IID_IDispatch, reinterpret_cast<void**>(&vItems.pdispVal));
+
+				// 4 = no progress dialog, 16 = yes-to-all, 512 = no "create folder" prompt, 1024 = no error UI
+				VARIANT vOpts{}; vOpts.vt = VT_I4; vOpts.lVal = 4 | 16 | 512 | 1024;
+				pDestFolder->CopyHere(vItems, vOpts);
+
+				long long prevFiles = -1, prevBytes = -1;
+				int stableTicks = 0;
+				for (int waited = 0; waited < 60000; waited += 150)
+				{
+					::Sleep(150);
+					long long files = 0, bytes = 0;
+					countTreeRecursive(destDir, files, bytes);
+					// Nothing extracted after a few seconds => the shell silently failed (e.g. an
+					// encrypted zip, which CopyHere with no-UI flags cannot open). Bail instead of
+					// freezing the UI for the full timeout.
+					if (files == 0 && waited >= 3000)
+						break;
+					if (files > 0 && files == prevFiles && bytes == prevBytes)
+					{
+						if (++stableTicks >= 3) { ok = true; break; } // ~450ms with no change
+					}
+					else
+					{
+						stableTicks = 0;
+						prevFiles = files;
+						prevBytes = bytes;
+					}
+				}
+				::VariantClear(&vItems);
+			}
+			if (pItems) pItems->Release();
+		}
+
+		if (pZipFolder) pZipFolder->Release();
+		if (pDestFolder) pDestFolder->Release();
+		::SysFreeString(vZip.bstrVal);
+		::SysFreeString(vDest.bstrVal);
+		pShell->Release();
+	}
+
+	if (SUCCEEDED(hrInit))
+		::CoUninitialize();
+	return ok;
+}
+
+// TeeJ-editor: collect every *.dll under dir (recursively, bounded depth).
+static void collectDllsRecursive(const std::wstring& dir, std::vector<std::wstring>& out, int depth = 0)
+{
+	if (depth > 8)
+		return;
+
+	getFilesInFolder(out, L"*.dll", dir);
+
+	std::wstring pattern = dir;
+	pathAppend(pattern, L"*");
+	WIN32_FIND_DATA fd{};
+	HANDLE h = ::FindFirstFile(pattern.c_str(), &fd);
+	if (h == INVALID_HANDLE_VALUE)
+		return;
+
+	do
+	{
+		if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
+			wcscmp(fd.cFileName, L".") != 0 && wcscmp(fd.cFileName, L"..") != 0)
+		{
+			std::wstring sub = dir;
+			pathAppend(sub, fd.cFileName);
+			collectDllsRecursive(sub, out, depth + 1);
+		}
+	} while (::FindNextFile(h, &fd));
+
+	::FindClose(h);
+}
+
+// TeeJ-editor: pick a package's primary DLL. TeeJ-editor loads plugins\<Name>\<Name>.dll where the
+// folder name must equal the DLL base name, so a well-formed package's main DLL is the one whose
+// base name matches its own containing folder (e.g. XMLTools\XMLTools.dll, alongside dependency
+// DLLs like iconv.dll). Prefer that; fall back to the first DLL found. False if there is no DLL.
+static bool findPluginDll(const std::wstring& dir, std::wstring& dllOut)
+{
+	std::vector<std::wstring> dlls;
+	collectDllsRecursive(dir, dlls);
+	if (dlls.empty())
+		return false;
+
+	for (const std::wstring& dll : dlls)
+	{
+		std::wstring name = ::PathFindFileName(dll.c_str());
+		std::wstring base = name.substr(0, name.find_last_of(L"."));
+
+		std::wstring parent = dll;
+		pathRemoveFileSpec(parent);
+		std::wstring parentName = ::PathFindFileName(parent.c_str());
+
+		if (_wcsicmp(base.c_str(), parentName.c_str()) == 0)
+		{
+			dllOut = dll;
+			return true;
+		}
+	}
+
+	dllOut = dlls.at(0);
+	return true;
+}
+
+bool Notepad_plus::installPluginFromZip()
+{
+	CustomFileDialog fDlg(_pPublicInterface->getHSelf());
+	fDlg.setExtFilter(L"Plugin package", L".zip");
+	fDlg.setDefExt(L"zip");
+	const std::wstring zipPath = fDlg.doOpenSingleFileDlg();
+	if (zipPath.empty())
+		return false;
+
+	HWND hSelf = _pPublicInterface->getHSelf();
+	NppParameters& nppParam = NppParameters::getInstance();
+
+	std::wstring pluginsDir = nppParam.getPluginRootDir();
+	if (pluginsDir.empty())
+		return false;
+	if (!doesDirectoryExist(pluginsDir.c_str()))
+		::CreateDirectory(pluginsDir.c_str(), NULL);
+
+	// Extract into a temp folder on the same volume as the plugins dir (fast rename, no %TEMP%).
+	std::wstring tmpDir = pluginsDir;
+	pathAppend(tmpDir, L".TeeJ-editor-ziptmp");
+	deleteFileOrFolder(tmpDir); // clear any stale temp from a previous run
+	if (!::CreateDirectory(tmpDir.c_str(), NULL))
+	{
+		_nativeLangSpeaker.messageBox("PluginZipInstallFail", hSelf,
+			L"Could not create a temporary folder to extract the plugin.",
+			L"Install Plugin from Zip", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	if (!shellUnzip(zipPath, tmpDir))
+	{
+		deleteFileOrFolder(tmpDir);
+		_nativeLangSpeaker.messageBox("PluginZipInstallFail", hSelf,
+			L"Failed to extract the zip. Make sure it is a valid, unencrypted plugin package.",
+			L"Install Plugin from Zip", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	std::wstring dllPath;
+	if (!findPluginDll(tmpDir, dllPath))
+	{
+		deleteFileOrFolder(tmpDir);
+		_nativeLangSpeaker.messageBox("PluginZipInstallNoDll", hSelf,
+			L"No plugin DLL was found inside the zip.",
+			L"Install Plugin from Zip", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	// TeeJ-editor requires plugins\<PluginName>\<PluginName>.dll, i.e. the folder name must match
+	// the dll name. Name the destination after the dll and move the dll's own folder into place.
+	std::wstring dllName = ::PathFindFileName(dllPath.c_str());
+	std::wstring pluginName = dllName.substr(0, dllName.find_last_of(L"."));
+
+	std::wstring srcFolder = dllPath;
+	pathRemoveFileSpec(srcFolder); // the folder that directly contains the dll
+
+	std::wstring destFolder = pluginsDir;
+	pathAppend(destFolder, pluginName);
+
+	bool moved = false;
+	if (doesDirectoryExist(destFolder.c_str()))
+	{
+		auto res = _nativeLangSpeaker.messageBox("PluginZipInstallOverwrite", hSelf,
+			L"A plugin with this name is already installed. Overwrite it?\n(A currently-loaded copy is replaced when you restart.)",
+			L"Install Plugin from Zip", MB_YESNO | MB_ICONQUESTION);
+		if (res != IDYES)
+		{
+			deleteFileOrFolder(tmpDir);
+			return false;
+		}
+
+		// Safe swap: move the old plugin aside FIRST so a failed install never destroys it.
+		std::wstring backup = destFolder + L".old-teej";
+		deleteFileOrFolder(backup); // clear any stale backup
+		if (!::MoveFile(destFolder.c_str(), backup.c_str()))
+		{
+			deleteFileOrFolder(tmpDir);
+			_nativeLangSpeaker.messageBox("PluginZipInstallLocked", hSelf,
+				L"The installed plugin is in use and could not be replaced.\nClose TeeJ-editor, then reinstall.",
+				L"Install Plugin from Zip", MB_OK | MB_ICONERROR);
+			return false;
+		}
+		moved = ::MoveFile(srcFolder.c_str(), destFolder.c_str()) != 0;
+		if (!moved)
+			::MoveFile(backup.c_str(), destFolder.c_str()); // roll back: restore the old plugin
+		else
+			deleteFileOrFolder(backup); // best-effort removal of the replaced copy
+	}
+	else
+	{
+		moved = ::MoveFile(srcFolder.c_str(), destFolder.c_str()) != 0;
+	}
+
+	deleteFileOrFolder(tmpDir); // remove leftovers (no-op if the move already consumed tmpDir)
+
+	if (!moved)
+	{
+		_nativeLangSpeaker.messageBox("PluginZipInstallFail", hSelf,
+			L"Extracted the zip but could not place the plugin into the plugins folder.",
+			L"Install Plugin from Zip", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	_nativeLangSpeaker.messageBox("PluginZipInstallDone", hSelf,
+		L"Plugin installed.\nRestart TeeJ-editor to load it.",
+		L"Install Plugin from Zip", MB_OK | MB_ICONINFORMATION);
+	return true;
+}
+
 void Notepad_plus::setWorkingDir(const wchar_t *dir)
 {
 	NppParameters& params = NppParameters::getInstance();
@@ -7465,7 +7741,7 @@ void Notepad_plus::launchClipboardHistoryPanel()
 
 		// the dlgDlg should be the index of funcItem where the current function pointer is
 		// in this case is DOCKABLE_DEMO_INDEX
-		// In the case of Notepad++ internal function, it'll be the command ID which triggers this dialog
+		// In the case of TeeJ-editor internal function, it'll be the command ID which triggers this dialog
 		data.dlgID = IDM_EDIT_CLIPBOARDHISTORY_PANEL;
 
 		wstring title_temp = pNativeSpeaker->getAttrNameStr(CH_PROJECTPANELTITLE, "ClipboardHistory", "PanelTitle");
@@ -7522,7 +7798,7 @@ void Notepad_plus::launchDocumentListPanel(bool changeFromBtnCmd)
 
 		// the dlgDlg should be the index of funcItem where the current function pointer is
 		// in this case is DOCKABLE_DEMO_INDEX
-		// In the case of Notepad++ internal function, it'll be the command ID which triggers this dialog
+		// In the case of TeeJ-editor internal function, it'll be the command ID which triggers this dialog
 		data.dlgID = IDM_VIEW_DOCLIST;
 
 		wstring title_temp = pNativeSpeaker->getAttrNameStr(FS_PROJECTPANELTITLE, "DocList", "PanelTitle");
@@ -7603,7 +7879,7 @@ void Notepad_plus::launchAnsiCharPanel()
 
 		// the dlgDlg should be the index of funcItem where the current function pointer is
 		// in this case is DOCKABLE_DEMO_INDEX
-		// In the case of Notepad++ internal function, it'll be the command ID which triggers this dialog
+		// In the case of TeeJ-editor internal function, it'll be the command ID which triggers this dialog
 		data.dlgID = IDM_EDIT_CHAR_PANEL;
 
 		wstring title_temp = pNativeSpeaker->getAttrNameStr(AI_PROJECTPANELTITLE, "AsciiInsertion", "PanelTitle");
@@ -7650,7 +7926,7 @@ void Notepad_plus::launchFileBrowser(const vector<wstring> & folders, const wstr
 
 		// the dlgDlg should be the index of funcItem where the current function pointer is
 		// in this case is DOCKABLE_DEMO_INDEX
-		// In the case of Notepad++ internal function, it'll be the command ID which triggers this dialog
+		// In the case of TeeJ-editor internal function, it'll be the command ID which triggers this dialog
 		data.dlgID = IDM_VIEW_FILEBROWSER;
 
 		NativeLangSpeaker *pNativeSpeaker = nppParams.getNativeLangSpeaker();
@@ -7764,7 +8040,7 @@ void Notepad_plus::launchProjectPanel(int cmdID, ProjectPanel ** pProjPanel, int
 
 		// the dlgDlg should be the index of funcItem where the current function pointer is
 		// in this case is DOCKABLE_DEMO_INDEX
-		// In the case of Notepad++ internal function, it'll be the command ID which triggers this dialog
+		// In the case of TeeJ-editor internal function, it'll be the command ID which triggers this dialog
 		data.dlgID = cmdID;
 
 		wstring title_no = to_wstring (panelID + 1);
@@ -7823,7 +8099,7 @@ void Notepad_plus::launchDocMap()
 
 		// the dlgDlg should be the index of funcItem where the current function pointer is
 		// in this case is DOCKABLE_DEMO_INDEX
-		// In the case of Notepad++ internal function, it'll be the command ID which triggers this dialog
+		// In the case of TeeJ-editor internal function, it'll be the command ID which triggers this dialog
 		data.dlgID = IDM_VIEW_DOC_MAP;
 
 		NativeLangSpeaker *pNativeSpeaker = nppParam.getNativeLangSpeaker();
@@ -7867,7 +8143,7 @@ void Notepad_plus::launchFunctionList()
 
 		// the dlgDlg should be the index of funcItem where the current function pointer is
 		// in this case is DOCKABLE_DEMO_INDEX
-		// In the case of Notepad++ internal function, it'll be the command ID which triggers this dialog
+		// In the case of TeeJ-editor internal function, it'll be the command ID which triggers this dialog
 		data.dlgID = IDM_VIEW_FUNC_LIST;
 
 		NativeLangSpeaker *pNativeSpeaker = nppParam.getNativeLangSpeaker();

@@ -136,7 +136,7 @@ static bool isSenderTrusted(WPARAM wParam)
 		return false;
 
 	if (dwProcessId == ::GetCurrentProcessId())
-		return false; // same-process - the same Notepad++ instance never send itself WM_COPYDATA - could be fake -> reject
+		return false; // same-process - the same TeeJ-editor instance never send itself WM_COPYDATA - could be fake -> reject
 
 	HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, dwProcessId);
 	if (!hProcess)
@@ -163,7 +163,7 @@ static bool isSenderTrusted(WPARAM wParam)
 		::CloseHandle(hToken);
 	}
 
-	// Executable identity: require it to be this same binary (another Notepad++ instance with the same path)
+	// Executable identity: require it to be this same binary (another TeeJ-editor instance with the same path)
 	if (isTrusted)
 	{
 		wchar_t senderImagePath[MAX_PATH]{};
@@ -291,7 +291,7 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 			NppGUI& nppGUI = nppParam.getNppGUI();
 
 			// Windows mode is enabled
-			// and don't change if Notepad++ is already in same mode as OS after changing OS mode
+			// and don't change if TeeJ-editor is already in same mode as OS after changing OS mode
 			if (NppDarkMode::isWindowsModeEnabled() && (enableDarkMode != NppDarkMode::isEnabled()))
 			{
 				nppGUI._darkmode._isEnabled = enableDarkMode;
@@ -1680,8 +1680,8 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 					Document doc = docs4EndUA.back();
 					if (MainFileManager.getBufferFromDocument(doc) == BUFFER_INVALID)
 					{
-						// affected doc no longer exists (a macro step closed its associated Notepad++ tab/buffer),
-						// the ending undo action is not needed (until Notepad++ supports tab/buffer closing undo)
+						// affected doc no longer exists (a macro step closed its associated TeeJ-editor tab/buffer),
+						// the ending undo action is not needed (until TeeJ-editor supports tab/buffer closing undo)
 					}
 					else
 					{
@@ -1716,11 +1716,11 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 		{
 			//return _scintillaCtrls4Plugins.destroyScintilla(reinterpret_cast<HWND>(lParam));
 
-			// Destroying allocated Scintilla makes Notepad++ crash
+			// Destroying allocated Scintilla makes TeeJ-editor crash
 			// because created Scintilla view's pointer is added into _referees of Buffer object automatically.
 			// The deallocated scintilla view in _referees is used in Buffer::nextUntitledNewNumber().
 
-			// So we do nothing here and let Notepad++ destroy allocated Scintilla while it exits
+			// So we do nothing here and let TeeJ-editor destroy allocated Scintilla while it exits
 			// and we keep this message for the sake of compatibility with the existing plugins.
 			return true;
 		}
@@ -2584,8 +2584,8 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 		{
 			int answer = _nativeLangSpeaker.messageBox("WindowsSessionExit",
 				_pPublicInterface->getHSelf(),
-				L"Windows session is about to be terminated but you have some data unsaved. Do you want to exit Notepad++ now?",
-				L"Notepad++ - Windows session exit",
+				L"Windows session is about to be terminated but you have some data unsaved. Do you want to exit TeeJ-editor now?",
+				L"TeeJ-editor - Windows session exit",
 				MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL);
 			if (answer == IDYES)
 				::PostMessage(_pPublicInterface->getHSelf(), WM_CLOSE, 0, 0);
@@ -2665,10 +2665,10 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 				if (MainFileManager.getNbDirtyBuffers() > 0)
 				{
 					// we have unsaved filebuffer(s), give the user a chance to respond
-					// (but only for a non-critical OS restart/shutdown and while the Notepad++ backup mode is OFF)
+					// (but only for a non-critical OS restart/shutdown and while the TeeJ-editor backup mode is OFF)
 					if (!isForcedShuttingDown && isFirstQueryEndSession && !nppParam.getNppGUI().isSnapshotMode())
 					{
-						// if Notepad++ has been minimized or invisible, we need to show it 1st
+						// if TeeJ-editor has been minimized or invisible, we need to show it 1st
 						if (::IsIconic(hwnd))
 						{
 							::ShowWindow(hwnd, SW_RESTORE);
@@ -2693,13 +2693,13 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 				if (!isForcedShuttingDown && isFirstQueryEndSession)
 					return FALSE; // request abort of the shutdown (for a non-critical one we can give the user a chance to solve whatever is needed)
 
-				// here is the right place to unblock the modal-dlg blocking the main Notepad++ wnd, because then it will be too late
+				// here is the right place to unblock the modal-dlg blocking the main TeeJ-editor wnd, because then it will be too late
 				// to do so at the WM_ENDSESSION time (for that we need this thread message queue...)
 
 				// in most cases we will need to take care and programmatically close such dialogs in order to exit gracefully,
-				// otherwise the Notepad++ most probably crashes itself without any tidy-up
+				// otherwise the TeeJ-editor most probably crashes itself without any tidy-up
 
-				string strLog = "Main Notepad++ wnd is disabled by (an active modal-dlg?):  ";
+				string strLog = "Main TeeJ-editor wnd is disabled by (an active modal-dlg?):  ";
 				char szBuf[MAX_PATH + 128] = { 0 };
 
 				HWND hActiveWnd = ::GetActiveWindow();
@@ -2738,10 +2738,10 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
 				// re-test
 				if (::IsWindowEnabled(hwnd))
-					strLog += "  -> Main Notepad++ wnd has been successfully reenabled.";
+					strLog += "  -> Main TeeJ-editor wnd has been successfully reenabled.";
 			}
 
-			// NOTE: This should be the last possible place to eventually register Notepad++ for the app-restart OS feature,
+			// NOTE: This should be the last possible place to eventually register TeeJ-editor for the app-restart OS feature,
 			//       but unfortunately it doesn't work here.
 
 			return TRUE; // nowadays, with the monstrous Win10+ Windows Update behind, is futile to try to interrupt the shutdown by returning FALSE here
@@ -2755,8 +2755,8 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 			if (wParam == FALSE)
 			{
 				// the session is not being ended after all
-				// - it happens when either the Notepad++ returns FALSE to non-critical WM_QUERYENDSESSION or any other app with higher shutdown level
-				//   than Notepad++ (app shuttdown order can be checked by the GetProcessShutdownParameters WINAPI)
+				// - it happens when either the TeeJ-editor returns FALSE to non-critical WM_QUERYENDSESSION or any other app with higher shutdown level
+				//   than TeeJ-editor (app shuttdown order can be checked by the GetProcessShutdownParameters WINAPI)
 				// - we will not try to reset back our nppParam _isEndSessionStarted flag somehow, because of we should now that there was already
 				//   a previous shutdown attempt, otherwise we could stubbornly repeat returning FALSE for the next WM_QUERYENDSESSION and
 				//   the system will terminate us
@@ -2768,7 +2768,7 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 				// so DO NOT e.g. Send/Post any message from here onwards!!!
 				nppParam.endSessionStart(); // ensure
 				nppParam.makeEndSessionCritical(); // set our exit-flag to critical even if the bitmask has not the ENDSESSION_CRITICAL set
-				// do not return 0 here and continue to the Notepad++ standard WM_CLOSE code-part (no verbose GUI there this time!!!)
+				// do not return 0 here and continue to the TeeJ-editor standard WM_CLOSE code-part (no verbose GUI there this time!!!)
 				[[fallthrough]];
 			}
 		} // case WM_ENDSESSION:
@@ -2831,7 +2831,7 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
 					if (!::IsWindowVisible(hwnd))
 					{
-						// Notepad++ probably has not been restored from the systray
+						// TeeJ-editor probably has not been restored from the systray
 						// - as its tray-icon was removed before, we have to show the app window otherwise we end up with no-GUI state
 						::ShowWindow(hwnd, SW_SHOW);
 						::SendMessage(hwnd, WM_SIZE, 0, 0);
@@ -2840,7 +2840,7 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 					return 0; // abort quitting
 				}
 
-				// from this point on the Notepad++ exit is inevitable
+				// from this point on the TeeJ-editor exit is inevitable
 				g_bNppExitFlag.store(true); // thread-safe op
 				// currently it is used only in the Notepad_plus::backupDocument worker thread,
 				// use it in such a thread like:	if (g_bNppExitFlag.load()) -> finish work of & exit the thread
@@ -2915,18 +2915,10 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 				if (isSnapshotMode)
 					::LockWindowUpdate(NULL);
 
-				//Sends WM_DESTROY, Notepad++ will end
+				//Sends WM_DESTROY, TeeJ-editor will end
 				::DestroyWindow(hwnd);
 
-				if (!nppParam.isEndSessionCritical())
-				{
-					wstring updaterFullPath = nppParam.getWingupFullPath();
-					if (!updaterFullPath.empty())
-					{
-						Process updater(updaterFullPath.c_str(), nppParam.getWingupParams().c_str(), nppParam.getWingupDir().c_str());
-						updater.run(nppParam.shouldDoUAC());
-					}
-				}
+				// TeeJ-editor: gup.exe launch removed — this build never contacts the internet.
 			}
 
 			return 0; // both WM_CLOSE and a possible WM_ENDSESSION should return 0

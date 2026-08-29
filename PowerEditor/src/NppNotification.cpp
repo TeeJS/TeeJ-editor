@@ -131,7 +131,7 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 					isDirty = true;
 			}
 
-			if (buf->isUnsync()) // buffer in Notepad++ is not synchronized with the file on disk - in this case the buffer is always dirty 
+			if (buf->isUnsync()) // buffer in TeeJ-editor is not synchronized with the file on disk - in this case the buffer is always dirty 
 				isDirty = true;
 
 			if (buf->isSavePointDirty())
@@ -642,7 +642,7 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 		// ======= End of SCN_*
 		//
 
-		case SCN_FOLDINGSTATECHANGED: // Notification not part of Scintilla, but Notepad++ added
+		case SCN_FOLDINGSTATECHANGED: // Notification not part of Scintilla, but TeeJ-editor added
 		{
 			if ((notification->nmhdr.hwndFrom == _mainEditView.getHSelf()) || (notification->nmhdr.hwndFrom == _subEditView.getHSelf()))
 			{
@@ -786,7 +786,7 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 				{
 					docGotoAnotherEditView(isInCtrlStat?TransferClone:TransferMove);
 				}
-				else // Drop outside of current Notepad++
+				else // Drop outside of current TeeJ-editor
 				{
 					RECT nppZone{};
 					::GetWindowRect(_pPublicInterface->getHSelf(), &nppZone);
@@ -808,7 +808,7 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 					const rsize_t classNameBufferSize = MAX_PATH;
 					wchar_t className[classNameBufferSize];
 					::GetClassName(hWinParent,className, classNameBufferSize);
-					if (lstrcmp(className, _pPublicInterface->getClassName()) == 0 && hWinParent != _pPublicInterface->getHSelf()) // another Notepad++
+					if (lstrcmp(className, _pPublicInterface->getClassName()) == 0 && hWinParent != _pPublicInterface->getHSelf()) // another TeeJ-editor
 					{
 						int index = _pDocTab->getCurrentTabIndex();
 						BufferID bufferToClose = notifyDocTab->getBufferByIndex(index);
@@ -819,7 +819,7 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 							_nativeLangSpeaker.messageBox("CannotMoveDoc",
 								_pPublicInterface->getHSelf(),
 								L"Document is modified, save it then try again.",
-								L"Move to new Notepad++ Instance",
+								L"Move to new TeeJ-editor Instance",
 								MB_OK);
 						}
 						else
@@ -834,7 +834,7 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 							}
 						}
 					}
-					else // Not Notepad++, we open it here
+					else // Not TeeJ-editor, we open it here
 					{
 						docOpenInNewInstance(isInCtrlStat?TransferClone:TransferMove, p.x, p.y);
 					}
@@ -1119,7 +1119,7 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 					itemUnitArray.push_back(MenuItemUnit(IDM_FILE_RELOAD, L"Reload"));
 					itemUnitArray.push_back(MenuItemUnit(IDM_FILE_PRINT, L"Print"));
 					itemUnitArray.push_back(MenuItemUnit(0, NULL));
-					itemUnitArray.push_back(MenuItemUnit(IDM_EDIT_TOGGLEREADONLY, L"Read-Only in Notepad++"));
+					itemUnitArray.push_back(MenuItemUnit(IDM_EDIT_TOGGLEREADONLY, L"Read-Only in TeeJ-editor"));
 					itemUnitArray.push_back(MenuItemUnit(IDM_EDIT_TOGGLESYSTEMREADONLY, L"Read-Only Attribute in Windows"));
 					itemUnitArray.push_back(MenuItemUnit(0, NULL));
 					itemUnitArray.push_back(MenuItemUnit(IDM_EDIT_FULLPATHTOCLIP, L"Copy Full File Path", L"Copy to Clipboard"));
@@ -1325,7 +1325,7 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 			if (_rebarBottom.getHSelf() == lpnm->hdr.hwndFrom)
 				notifRebar = &_rebarBottom;
 
-			//If Notepad++ ID, use proper object
+			//If TeeJ-editor ID, use proper object
 			if (lpnm->wID == REBAR_BAR_TOOLBAR)
 			{
 				POINT pt{};

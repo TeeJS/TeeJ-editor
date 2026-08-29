@@ -4,10 +4,10 @@
 <assemblyIdentity
     version="1.0.0.0"
     processorArchitecture="*"
-    name="Notepad++"
+    name="TeeJ-editor"
     type="win32"
 />
-<description>Notepad++</description>
+<description>TeeJ-editor</description>
 <dependency>
     <dependentAssembly>
         <assemblyIdentity

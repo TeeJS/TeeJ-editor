@@ -50,7 +50,7 @@
 
 using namespace std;
 
-const wchar_t * USERMSG = L" is not compatible with the current version of Notepad++.\n\n\
+const wchar_t * USERMSG = L" is not compatible with the current version of TeeJ-editor.\n\n\
 Do you want to remove this plugin from the plugins directory to prevent this message from the next launch?";
 
 static WORD getBinaryArchitectureType(const wchar_t *filePath)
@@ -140,7 +140,7 @@ int PluginsManager::loadPluginFromPath(const wchar_t *pluginFilePath)
 
 		pi->_pFuncIsUnicode = reinterpret_cast<PFUNCISUNICODE>(::GetProcAddress(pi->_hLib, "isUnicode"));
 		if (!pi->_pFuncIsUnicode || !pi->_pFuncIsUnicode())
-			throw wstring(L"This ANSI plugin is not compatible with your Unicode Notepad++.");
+			throw wstring(L"This ANSI plugin is not compatible with your Unicode TeeJ-editor.");
 
 		pi->_pFuncSetInfo = reinterpret_cast<PFUNCSETINFO>(::GetProcAddress(pi->_hLib, "setInfo"));
 
@@ -341,7 +341,7 @@ bool PluginsManager::loadPlugins(const wchar_t* dir, const PluginViewList* plugi
 	HANDLE hFindFolder = ::FindFirstFile(pluginsFolderFilter.c_str(), &foundData);
 	HANDLE hFindDll = INVALID_HANDLE_VALUE;
 
-	// Get Notepad++ current version
+	// Get TeeJ-editor current version
 	wchar_t nppFullPathName[MAX_PATH];
 	GetModuleFileName(NULL, nppFullPathName, MAX_PATH);
 	Version nppVer;
@@ -350,8 +350,8 @@ bool PluginsManager::loadPlugins(const wchar_t* dir, const PluginViewList* plugi
 	// get plugin folder
 	if (hFindFolder != INVALID_HANDLE_VALUE && (foundData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 	{
-		const wchar_t* incompatibleWarning = L"%s's version %s is not compatible to this version of Notepad++ (v%s).\r\nAs a result the plugin cannot be loaded.";
-		const wchar_t* incompatibleWarningWithSolution = L"%s's version %s is not compatible to this version of Notepad++ (v%s).\r\nAs a result the plugin cannot be loaded.\r\n\r\nGo to Updates section and update your plugin to %s for solving the compatibility issue.";
+		const wchar_t* incompatibleWarning = L"%s's version %s is not compatible to this version of TeeJ-editor (v%s).\r\nAs a result the plugin cannot be loaded.";
+		const wchar_t* incompatibleWarningWithSolution = L"%s's version %s is not compatible to this version of TeeJ-editor (v%s).\r\nAs a result the plugin cannot be loaded.\r\n\r\nGo to Updates section and update your plugin to %s for solving the compatibility issue.";
 
 		wstring foundFileName = foundData.cFileName;
 		// "Config" holds settings, not plugins; "disabled" holds deactivated plugins moved by
@@ -371,7 +371,7 @@ bool PluginsManager::loadPlugins(const wchar_t* dir, const PluginViewList* plugi
 				// - foundFileName: folder-name
 				// _ pluginsFullPathFilter: version
 				// 
-				// Find plugin update info of current plugin and check if it's compatible to Notepad++ current versions
+				// Find plugin update info of current plugin and check if it's compatible to TeeJ-editor current versions
 				bool isCompatible = true;
 
 				if (pluginUpdateInfoList)
@@ -385,7 +385,7 @@ bool PluginsManager::loadPlugins(const wchar_t* dir, const PluginViewList* plugi
 						v.setVersionFrom(pluginsFullPathFilter);
 						if (v == pui->_version)
 						{
-							// Find compatible Notepad++ versions
+							// Find compatible TeeJ-editor versions
 							isCompatible = nppVer.isCompatibleTo(pui->_nppCompatibleVersions.first, pui->_nppCompatibleVersions.second);
 
 							if (!isCompatible && pluginIncompatibleList)
@@ -448,7 +448,7 @@ bool PluginsManager::loadPlugins(const wchar_t* dir, const PluginViewList* plugi
 					// - foundFileName2: folder-name
 					// _ pluginsFullPathFilter2: version
 					// 
-					// Find plugin update info of current plugin and check if it's compatible to Notepad++ current versions
+					// Find plugin update info of current plugin and check if it's compatible to TeeJ-editor current versions
 					bool isCompatible2 = true;
 
 					if (pluginUpdateInfoList)
@@ -462,7 +462,7 @@ bool PluginsManager::loadPlugins(const wchar_t* dir, const PluginViewList* plugi
 							v2.setVersionFrom(pluginsFullPathFilter2);
 							if (v2 == pui2->_version)
 							{
-								// Find compatible Notepad++ versions
+								// Find compatible TeeJ-editor versions
 								isCompatible2 = nppVer.isCompatibleTo(pui2->_nppCompatibleVersions.first, pui2->_nppCompatibleVersions.second);
 
 								if (!isCompatible2 && pluginIncompatibleList)
@@ -625,12 +625,12 @@ HMENU PluginsManager::initMenu(HMENU hMenu, bool enablePluginAdmin)
 		if (nbPlugin > 0)
 			::InsertMenu(_hPluginsMenu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, L"");
 
-		if (enablePluginAdmin)
-		{
-			int i = 1;
-			::InsertMenu(_hPluginsMenu, i++, MF_BYPOSITION, IDM_SETTING_PLUGINADM, L"Plugins Admin...");
-			::InsertMenu(_hPluginsMenu, i++, MF_BYPOSITION | MF_SEPARATOR, 0, L"");
-		}
+		// TeeJ-editor: network Plugins Admin removed. Offline installer added instead:
+		// extracts a local .zip into the plugins folder (no internet, no gup.exe).
+		(void)enablePluginAdmin;
+		int i = 1;
+		::InsertMenu(_hPluginsMenu, i++, MF_BYPOSITION, IDM_SETTING_PLUGINADM, L"Install Plugin from Zip...");
+		::InsertMenu(_hPluginsMenu, i++, MF_BYPOSITION | MF_SEPARATOR, 0, L"");
 	}
 
 	for (size_t i = 0; i < nbPlugin; ++i)

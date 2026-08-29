@@ -857,8 +857,8 @@ intptr_t CALLBACK GeneralSubDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM
 						NativeLangSpeaker* pNativeSpeaker = nppParam.getNativeLangSpeaker();
 						pNativeSpeaker->messageBox("Need2Restart2ShowMenuShortcuts",
 							_hSelf,
-							L"Notepad++ needs to be restarted to show right menu shortcuts.",
-							L"Notepad++ need to be restarted",
+							L"TeeJ-editor needs to be restarted to show right menu shortcuts.",
+							L"TeeJ-editor need to be restarted",
 							MB_OK | MB_APPLMODAL);
 
 						isFirstShow = false;
@@ -2274,7 +2274,7 @@ intptr_t CALLBACK Editing2SubDlg::run_dlgProc(UINT message, WPARAM wParam, LPARA
 
 				case IDC_BUTTON_NPC_NOTE:
 				{
-					::ShellExecute(NULL, L"open", L"https://npp-user-manual.org/docs/views/#show-symbol", NULL, NULL, SW_SHOWNORMAL);
+					// TeeJ-editor: online manual link removed — this build never contacts the internet.
 					return TRUE;
 				}
 
@@ -3144,8 +3144,8 @@ intptr_t CALLBACK MarginsBorderEdgeSubDlg::run_dlgProc(UINT message, WPARAM wPar
 							NativeLangSpeaker* pNativeSpeaker = nppParam.getNativeLangSpeaker();
 							pNativeSpeaker->messageBox("ChangeHistoryEnabledWarning",
 								_hSelf,
-								L"You have to restart Notepad++ to enable Change History.",
-								L"Notepad++ needs to be relaunched",
+								L"You have to restart TeeJ-editor to enable Change History.",
+								L"TeeJ-editor needs to be relaunched",
 								MB_OK | MB_APPLMODAL);
 							
 							changeHistoryWarningHasBeenGiven = true;
@@ -3176,8 +3176,8 @@ intptr_t CALLBACK MarginsBorderEdgeSubDlg::run_dlgProc(UINT message, WPARAM wPar
 							NativeLangSpeaker* pNativeSpeaker = nppParam.getNativeLangSpeaker();
 							pNativeSpeaker->messageBox("ChangeHistoryEnabledWarning",
 								_hSelf,
-								L"You have to restart Notepad++ to enable Change History.",
-								L"Notepad++ needs to be relaunched",
+								L"You have to restart TeeJ-editor to enable Change History.",
+								L"TeeJ-editor needs to be relaunched",
 								MB_OK | MB_APPLMODAL);
 							
 							changeHistoryWarningHasBeenGiven = true;
@@ -3333,7 +3333,7 @@ intptr_t CALLBACK MiscSubDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM)
 
 			NativeLangSpeaker* pNativeSpeaker = nppParam.getNativeLangSpeaker();
 			wstring tipScintillaRenderingTechnology2Show = pNativeSpeaker->getLocalizedStrFromID("scintillaRenderingTechnology-tip",
-				L"May improve rendering of special characters or resolve some graphics issues, restart Notepad++ to apply the changes.");
+				L"May improve rendering of special characters or resolve some graphics issues, restart TeeJ-editor to apply the changes.");
 			_tipScintillaRenderingTechnology = createToolTip(IDC_COMBO_SC_TECHNOLOGY_CHOICE, _hSelf, _hInst,
 				tipScintillaRenderingTechnology2Show.data(), pNativeSpeaker->isRTL());
 
@@ -3342,8 +3342,8 @@ intptr_t CALLBACK MiscSubDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM)
 			::SendDlgItemMessage(_hSelf, IDC_CHECK_ALOOWSIMLINKFAW, BM_SETCHECK, nppGUI._isFawSymlinkAllowed, 0);
 
 			::SendDlgItemMessage(_hSelf, IDC_COMBO_AUTOUPDATE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"Disable"));
-			::SendDlgItemMessage(_hSelf, IDC_COMBO_AUTOUPDATE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"Enable on Notepad++ startup"));
-			::SendDlgItemMessage(_hSelf, IDC_COMBO_AUTOUPDATE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"Enable on Notepad++ exit"));
+			::SendDlgItemMessage(_hSelf, IDC_COMBO_AUTOUPDATE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"Enable on TeeJ-editor startup"));
+			::SendDlgItemMessage(_hSelf, IDC_COMBO_AUTOUPDATE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L"Enable on TeeJ-editor exit"));
 			if ((nppGUI._autoUpdateOpt._doAutoUpdate < NppGUI::autoupdate_disabled) || (nppGUI._autoUpdateOpt._doAutoUpdate > NppGUI::autoupdate_on_exit))
 				nppGUI._autoUpdateOpt._doAutoUpdate = NppGUI::autoupdate_on_startup;
 			::SendDlgItemMessage(_hSelf, IDC_COMBO_AUTOUPDATE, CB_SETCURSEL, nppGUI._autoUpdateOpt._doAutoUpdate, 0);
@@ -3508,7 +3508,7 @@ intptr_t CALLBACK MiscSubDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM)
 						NativeLangSpeaker* pNativeSpeaker = nppParam.getNativeLangSpeaker();
 						pNativeSpeaker->messageBox("SymlinkLoadingWarning",
 							_hSelf,
-							L"Enabling symlink loading in Folder as Workspace may cause Notepad++ to enter an infinite loop and freeze.\rThis can happen when directory symlinks resolve to parent folders or form circular references.\rProceed only if you understand the risks.",
+							L"Enabling symlink loading in Folder as Workspace may cause TeeJ-editor to enter an infinite loop and freeze.\rThis can happen when directory symlinks resolve to parent folders or form circular references.\rProceed only if you understand the risks.",
 							L"Warning: Symlink Loading May Cause Freeze",
 							MB_OK | MB_ICONWARNING | MB_APPLMODAL);
 						isFirstTime = false;
@@ -6699,7 +6699,7 @@ intptr_t CALLBACK CloudAndLinkSubDlg::run_dlgProc(UINT message, WPARAM wParam, L
 							wstring warningMsg;
 							if (nppParams.isCloudPathChanged())
 							{
-								warningMsg = pNativeSpeaker->getLocalizedStrFromID("cloud-restart-warning", L"Please restart Notepad++ to take effect.");
+								warningMsg = pNativeSpeaker->getLocalizedStrFromID("cloud-restart-warning", L"Please restart TeeJ-editor to take effect.");
 							}
 							::SetDlgItemText(_hSelf, IDC_SETTINGSONCLOUD_WARNING_STATIC, warningMsg.c_str());
 						}
@@ -6740,7 +6740,7 @@ intptr_t CALLBACK CloudAndLinkSubDlg::run_dlgProc(UINT message, WPARAM wParam, L
 					wstring warningMsg;
 					if (nppParams.isCloudPathChanged())
 					{
-						warningMsg = pNativeSpeaker->getLocalizedStrFromID("cloud-restart-warning", L"Please restart Notepad++ to take effect.");
+						warningMsg = pNativeSpeaker->getLocalizedStrFromID("cloud-restart-warning", L"Please restart TeeJ-editor to take effect.");
 					}
 					// else set empty string
 					::SetDlgItemText(_hSelf, IDC_SETTINGSONCLOUD_WARNING_STATIC, warningMsg.c_str());
@@ -6763,7 +6763,7 @@ intptr_t CALLBACK CloudAndLinkSubDlg::run_dlgProc(UINT message, WPARAM wParam, L
 
 				case IDD_CLOUDPATH_BROWSE_BUTTON:
 				{
-					wstring warningMsg = pNativeSpeaker->getLocalizedStrFromID("cloud-select-folder", L"Select a folder from/to where Notepad++ reads/writes its settings");
+					wstring warningMsg = pNativeSpeaker->getLocalizedStrFromID("cloud-select-folder", L"Select a folder from/to where TeeJ-editor reads/writes its settings");
 					folderBrowser(_hSelf, warningMsg, IDC_CLOUDPATH_EDIT);
 				}
 				break;

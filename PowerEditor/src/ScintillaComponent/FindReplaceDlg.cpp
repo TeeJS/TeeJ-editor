@@ -2956,7 +2956,7 @@ bool FindReplaceDlg::processFindNext(const wchar_t* txt2find,
 		{
 			setStatusMessageNotFound(txt2find);
 
-			// if the dialog is not shown, pass the focus to his parent(ie. Notepad++)
+			// if the dialog is not shown, pass the focus to his parent(ie. TeeJ-editor)
 			if (!::IsWindowVisible(_hSelf))
 			{
 				(*_ppEditView)->grabFocus();
@@ -3092,7 +3092,7 @@ bool FindReplaceDlg::processFindNext(const wchar_t* txt2find,
 				}
 				setStatusMessageNotFound(txt2find, reasonMsg);
 
-				// if the dialog is not shown, pass the focus to his parent(ie. Notepad++)
+				// if the dialog is not shown, pass the focus to his parent(ie. TeeJ-editor)
 				if (!::IsWindowVisible(_hSelf))
 				{
 					(*_ppEditView)->grabFocus();
@@ -5904,7 +5904,7 @@ void Finder::copyPathnames()
 		if (!str2Clipboard(toClipboard, _hSelf))
 		{
 			assert(false);
-			NppDarkMode::darkMessageBoxW(nullptr, L"Error placing pathnames into clipboard.", L"Notepad++", MB_ICONINFORMATION);
+			NppDarkMode::darkMessageBoxW(nullptr, L"Error placing pathnames into clipboard.", L"TeeJ-editor", MB_ICONINFORMATION);
 		}
 	}
 }
@@ -6009,7 +6009,7 @@ void Finder::copy()
 	if (!str2Clipboard(toClipboard, _hSelf))
 	{
 		assert(false);
-		NppDarkMode::darkMessageBoxW(nullptr, L"Error placing text in clipboard.", L"Notepad++", MB_ICONINFORMATION);
+		NppDarkMode::darkMessageBoxW(nullptr, L"Error placing text in clipboard.", L"TeeJ-editor", MB_ICONINFORMATION);
 	}
 }
 

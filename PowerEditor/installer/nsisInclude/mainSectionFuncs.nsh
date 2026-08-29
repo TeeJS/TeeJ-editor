@@ -94,11 +94,11 @@ Function copyCommonFiles
 	File "..\bin\readme.txt"
 	
 !ifdef ARCH64
-	File "..\bin64\notepad++.exe"
+	File "..\bin64\TeeJ-editor.exe"
 !else ifdef ARCHARM64
-	File "..\binarm64\notepad++.exe"
+	File "..\binarm64\TeeJ-editor.exe"
 !else
-	File "..\bin\notepad++.exe"
+	File "..\bin\TeeJ-editor.exe"
 !endif
 
 	; Markdown in user defined languages
@@ -108,26 +108,18 @@ Function copyCommonFiles
 	File "..\bin\userDefineLangs\markdown._preinstalled_DM.udl.xml"
 
 	; Localization
-	; Default language English 
+	; TeeJ-editor: English only. English is compiled into the exe; the xml is shipped so the
+	; Preferences language list has its entry. No other languages are staged or installed.
 	SetOutPath "$INSTDIR\localization\"
 	File ".\nativeLang\english.xml"
 
-	; Copy all the Notepad++ localization files to the temp directory
-	; than make them installed via option
-	SetOutPath "$PLUGINSDIR\nppLocalization\"
-	File ".\nativeLang\"
-
+	; Remove any active non-English UI language left by a previous Notepad++ install,
+	; otherwise the app would try to load a translation file that no longer exists.
 	IfFileExists "$UPDATE_PATH\nativeLang.xml" 0 +2
 		Delete "$UPDATE_PATH\nativeLang.xml"
-		
+
 	IfFileExists "$INSTDIR\nativeLang.xml" 0 +2
 		Delete "$INSTDIR\nativeLang.xml"
-
-	StrCmp $LANGUAGE ${LANG_ENGLISH} +5 0
-	CopyFiles "$PLUGINSDIR\nppLocalization\$(langFileName)" "$UPDATE_PATH\nativeLang.xml"
-	CopyFiles "$PLUGINSDIR\nppLocalization\$(langFileName)" "$INSTDIR\localization\$(langFileName)"
-	IfFileExists "$PLUGINSDIR\gupLocalization\$(langFileName)" 0 +2
-		CopyFiles "$PLUGINSDIR\gupLocalization\$(langFileName)" "$INSTDIR\updater\nativeLang.xml"
 
 FunctionEnd
 
@@ -313,7 +305,7 @@ jN64:
 
 
 	IfFileExists "$INSTDIR\plugins\NppQCP\NppQCP.dll" 0 NppQCPTestEnd64
-		MessageBox MB_OK "Due to NppQCP plugin's crash issue on Notepad++ x64 binary, NppQCP.dll will be removed." /SD IDOK
+		MessageBox MB_OK "Due to NppQCP plugin's crash issue on TeeJ-editor x64 binary, NppQCP.dll will be removed." /SD IDOK
 		Rename "$INSTDIR\plugins\NppQCP\NppQCP.dll" "$INSTDIR\plugins\disabled\NppQCP.dll"
 		Delete "$INSTDIR\plugins\NppQCP\NppQCP.dll"
 NppQCPTestEnd64:
@@ -389,9 +381,9 @@ Function shortcutLinkManagement
 	SetOutPath "$INSTDIR\"
 	
 	; add all the npp shortcuts for all user or current user
-	CreateShortCut "$SMPROGRAMS\Notepad++.lnk" "$INSTDIR\notepad++.exe"
+	CreateShortCut "$SMPROGRAMS\TeeJ-editor.lnk" "$INSTDIR\TeeJ-editor.exe"
 	${If} $createShortcutChecked == ${BST_CHECKED}
-		CreateShortCut "$DESKTOP\Notepad++.lnk" "$INSTDIR\notepad++.exe"
+		CreateShortCut "$DESKTOP\TeeJ-editor.lnk" "$INSTDIR\TeeJ-editor.exe"
 	${EndIf}
 	
 	SetShellVarContext current

@@ -112,8 +112,8 @@ public:
 	int messageBox(const char* msgBoxTagName, HWND hWnd, const wchar_t* defaultMessage, const wchar_t* defaultTitle, int msgBoxType, int intInfo = 0, const wchar_t* strInfo = nullptr) const;
 private:
 	NppXml::Element _nativeLang{};
-	static constexpr int _nativeLangEncoding = CP_UTF8; // all Notepad++ xml files should be UTF8
-	bool _isRTL = false; // for Notepad++ GUI
+	static constexpr int _nativeLangEncoding = CP_UTF8; // all TeeJ-editor xml files should be UTF8
+	bool _isRTL = false; // for TeeJ-editor GUI
 	bool _isEditZoneRTL = false; // for Scintilla
 	const char* _fileName = nullptr;
 	std::map<std::string, std::wstring> _shortcutMenuEntryNameMap;

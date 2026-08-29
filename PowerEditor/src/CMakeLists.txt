@@ -425,6 +425,8 @@ endif()
 
 ADD_EXECUTABLE(notepad++ ${option} ${src_files} ${include_files} ${rcFiles})
 
+SET_TARGET_PROPERTIES(notepad++ PROPERTIES OUTPUT_NAME "TeeJ-editor")
+
 
 TARGET_LINK_LIBRARIES (notepad++ ${SCINTILLA_STATIC_LIBRARY} ${LEXILLA_STATIC_LIBRARY} ${win32_LIBRARIES})
 

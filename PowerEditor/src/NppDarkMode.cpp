@@ -1064,7 +1064,7 @@ namespace NppDarkMode
 		// Saves width and height from the resource file for use as restrictions.
 		ButtonData(HWND hWnd)
 		{
-			// Notepad++ doesn't use BS_3STATE, BS_AUTO3STATE and BS_PUSHLIKE buttons.
+			// TeeJ-editor doesn't use BS_3STATE, BS_AUTO3STATE and BS_PUSHLIKE buttons.
 			const auto nBtnStyle = ::GetWindowLongPtrW(hWnd, GWL_STYLE);
 			switch (nBtnStyle & BS_TYPEMASK)
 			{
@@ -1380,7 +1380,7 @@ namespace NppDarkMode
 		DWORD_PTR pButtonData = reinterpret_cast<DWORD_PTR>(new ButtonData(hwnd));
 		SetWindowSubclass(hwnd, ButtonSubclass, static_cast<UINT_PTR>(SubclassID::darkMode), pButtonData);
 
-		// The following code handles default English localization during Notepad++ launch for button size.
+		// The following code handles default English localization during TeeJ-editor launch for button size.
 		// For other languages, NativeLangSpeaker::resizeCheckboxRadioBtn will adjust button dimensions.
 		const auto nBtnStyle = ::GetWindowLongPtrW(hwnd, GWL_STYLE);
 		switch (nBtnStyle & BS_TYPEMASK)
